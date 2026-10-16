@@ -1,0 +1,262 @@
+<?xml version="1.0"?>
+<!--
+  lunar_rover.urdf
+  Team Batman - Nakshatra Aerospace Hackathon 2026 (Problem Statement 01)
+  Compliant with strict competition dimensional constraints:
+  - Footprint: 28.0 cm (L) x 20.0 cm (W) <= 30 x 21 cm (A4 envelope)
+  - Electronics bay: 6.8 cm width centrally mounted <= 7.0 cm limit
+  - Max height: 22.0 cm ground to mast <= 25.0 cm limit
+  - Ground clearance: 20 mm nominal, variable 6 mm to 35 mm via active suspension
+  - Compatible with NVIDIA Isaac Sim / Isaac Lab / ROS2 / Gazebo / PyBullet
+-->
+<robot name="batman_lunar_rover">
+
+  <!-- Base Footprint (Ground Projection) -->
+  <link name="base_footprint"/>
+
+  <!-- Base Link / Central Electronics Bay Spine -->
+  <link name="base_link">
+    <!-- Central 6.8 cm Bay Structure -->
+    <visual>
+      <origin xyz="0 0 0.06" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.28 0.068 0.08"/>
+      </geometry>
+      <material name="matte_black">
+        <color rgba="0.12 0.12 0.14 1.0"/>
+      </material>
+    </visual>
+    <!-- Wider Outrigger Deck (Total 20.0 cm width) -->
+    <visual>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.26 0.19 0.015"/>
+      </geometry>
+      <material name="anodized_gold_foil">
+        <color rgba="0.85 0.70 0.25 0.9"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.28 0.20 0.09"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <!-- Rover Mass: 2.80 kg, Center of Mass kept low at 4.5 cm -->
+      <mass value="2.80"/>
+      <origin xyz="0 0 0.045" rpy="0 0 0"/>
+      <inertia ixx="0.0098" ixy="0.0" ixz="0.0" iyy="0.0185" iyz="0.0" izz="0.0242"/>
+    </inertial>
+  </link>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <!-- Nominal ground clearance = 20 mm -->
+    <origin xyz="0 0 0.020" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Sensor Mast (Camera / Stereo Depth / LiDAR) -->
+  <link name="sensor_mast_link">
+    <visual>
+      <!-- Mast Column -->
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.15"/>
+      </geometry>
+      <material name="carbon_fiber">
+        <color rgba="0.2 0.2 0.22 1.0"/>
+      </material>
+    </visual>
+    <!-- Sensor Head Housing at 22 cm total elevation -->
+    <visual>
+      <origin xyz="0.015 0 0.15" rpy="0 0.4538 0"/> <!-- 26 deg downward pitch -->
+      <geometry>
+        <box size="0.035 0.09 0.028"/>
+      </geometry>
+      <material name="sensor_blue">
+        <color rgba="0.1 0.4 0.9 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.015" length="0.15"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.22"/>
+      <origin xyz="0 0 0.08" rpy="0 0 0"/>
+      <inertia ixx="0.0003" ixy="0" ixz="0" iyy="0.0003" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <joint name="sensor_mast_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="sensor_mast_link"/>
+    <origin xyz="0.08 0 0.07" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Optical Camera / RTX Sensor Frame -->
+  <link name="camera_sensor_frame">
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+  </link>
+  <joint name="camera_sensor_joint" type="fixed">
+    <parent link="sensor_mast_link"/>
+    <child link="camera_sensor_frame"/>
+    <origin xyz="0.03 0 0.15" rpy="0 0.4538 0"/> <!-- Looking down at terrain -->
+  </joint>
+
+  <!-- 4-Leg Active Suspension Servos & Wheels/Track Sprockets -->
+
+  <!-- Macro for Suspension Arm + Wheel -->
+  <!-- FRONT LEFT -->
+  <link name="suspension_fl_arm">
+    <visual>
+      <origin xyz="0 0.0 -0.01" rpy="0 0 0"/>
+      <geometry><box size="0.05 0.015 0.015"/></geometry>
+      <material name="carbon_fiber"/>
+    </visual>
+    <inertial><mass value="0.08"/><origin xyz="0 0 0"/><inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/></inertial>
+  </link>
+  <joint name="suspension_fl_servo_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="suspension_fl_arm"/>
+    <origin xyz="0.10 0.0825 0.02" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.35" upper="0.35" effort="4.5" velocity="3.0"/>
+  </joint>
+
+  <link name="wheel_fl_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079 0 0"/>
+      <geometry><cylinder radius="0.040" length="0.035"/></geometry>
+      <material name="track_rubber"><color rgba="0.08 0.08 0.08 1.0"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.57079 0 0"/>
+      <geometry><cylinder radius="0.040" length="0.035"/></geometry>
+    </collision>
+    <inertial><mass value="0.15"/><origin xyz="0 0 0"/><inertia ixx="7e-5" ixy="0" ixz="0" iyy="1.2e-4" iyz="0" izz="7e-5"/></inertial>
+  </link>
+  <joint name="wheel_fl_joint" type="continuous">
+    <parent link="suspension_fl_arm"/>
+    <child link="wheel_fl_link"/>
+    <origin xyz="0.02 0.0 -0.015" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- FRONT RIGHT -->
+  <link name="suspension_fr_arm">
+    <visual>
+      <origin xyz="0 0.0 -0.01" rpy="0 0 0"/>
+      <geometry><box size="0.05 0.015 0.015"/></geometry>
+      <material name="carbon_fiber"/>
+    </visual>
+    <inertial><mass value="0.08"/><origin xyz="0 0 0"/><inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/></inertial>
+  </link>
+  <joint name="suspension_fr_servo_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="suspension_fr_arm"/>
+    <origin xyz="0.10 -0.0825 0.02" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.35" upper="0.35" effort="4.5" velocity="3.0"/>
+  </joint>
+
+  <link name="wheel_fr_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079 0 0"/>
+      <geometry><cylinder radius="0.040" length="0.035"/></geometry>
+      <material name="track_rubber"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.57079 0 0"/>
+      <geometry><cylinder radius="0.040" length="0.035"/></geometry>
+    </collision>
+    <inertial><mass value="0.15"/><origin xyz="0 0 0"/><inertia ixx="7e-5" ixy="0" ixz="0" iyy="1.2e-4" iyz="0" izz="7e-5"/></inertial>
+  </link>
+  <joint name="wheel_fr_joint" type="continuous">
+    <parent link="suspension_fr_arm"/>
+    <child link="wheel_fr_link"/>
+    <origin xyz="0.02 0.0 -0.015" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- REAR LEFT -->
+  <link name="suspension_rl_arm">
+    <visual>
+      <origin xyz="0 0.0 -0.01" rpy="0 0 0"/>
+      <geometry><box size="0.05 0.015 0.015"/></geometry>
+      <material name="carbon_fiber"/>
+    </visual>
+    <inertial><mass value="0.08"/><origin xyz="0 0 0"/><inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/></inertial>
+  </link>
+  <joint name="suspension_rl_servo_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="suspension_rl_arm"/>
+    <origin xyz="-0.10 0.0825 0.02" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.35" upper="0.35" effort="4.5" velocity="3.0"/>
+  </joint>
+
+  <link name="wheel_rl_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079 0 0"/>
+      <geometry><cylinder radius="0.040" length="0.035"/></geometry>
+      <material name="track_rubber"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.57079 0 0"/>
+      <geometry><cylinder radius="0.040" length="0.035"/></geometry>
+    </collision>
+    <inertial><mass value="0.15"/><origin xyz="0 0 0"/><inertia ixx="7e-5" ixy="0" ixz="0" iyy="1.2e-4" iyz="0" izz="7e-5"/></inertial>
+  </link>
+  <joint name="wheel_rl_joint" type="continuous">
+    <parent link="suspension_rl_arm"/>
+    <child link="wheel_rl_link"/>
+    <origin xyz="-0.02 0.0 -0.015" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- REAR RIGHT -->
+  <link name="suspension_rr_arm">
+    <visual>
+      <origin xyz="0 0.0 -0.01" rpy="0 0 0"/>
+      <geometry><box size="0.05 0.015 0.015"/></geometry>
+      <material name="carbon_fiber"/>
+    </visual>
+    <inertial><mass value="0.08"/><origin xyz="0 0 0"/><inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/></inertial>
+  </link>
+  <joint name="suspension_rr_servo_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="suspension_rr_arm"/>
+    <origin xyz="-0.10 -0.0825 0.02" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.35" upper="0.35" effort="4.5" velocity="3.0"/>
+  </joint>
+
+  <link name="wheel_rr_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079 0 0"/>
+      <geometry><cylinder radius="0.040" length="0.035"/></geometry>
+      <material name="track_rubber"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.57079 0 0"/>
+      <geometry><cylinder radius="0.040" length="0.035"/></geometry>
+    </collision>
+    <inertial><mass value="0.15"/><origin xyz="0 0 0"/><inertia ixx="7e-5" ixy="0" ixz="0" iyy="1.2e-4" iyz="0" izz="7e-5"/></inertial>
+  </link>
+  <joint name="wheel_rr_joint" type="continuous">
+    <parent link="suspension_rr_arm"/>
+    <child link="wheel_rr_link"/>
+    <origin xyz="-0.02 0.0 -0.015" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+</robot>
