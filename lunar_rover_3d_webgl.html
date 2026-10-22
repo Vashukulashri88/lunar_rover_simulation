@@ -9,7 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <style>
     body { margin: 0; user-select: none; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    #webgl-container { width: 100%; height: 550px; position: relative; border-radius: 0.75rem; overflow: hidden; background: #05070e; }
+    #webgl-container { width: 100%; height: 600px; position: relative; border-radius: 0.75rem; overflow: hidden; background: #05070e; }
     #webgl-container canvas.webgl-canvas { display: block; width: 100% !important; height: 100% !important; }
     .glass-card { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(10px); border: 1px solid rgba(51, 65, 85, 0.75); }
     .terminal-scroll::-webkit-scrollbar { width: 4px; }
@@ -196,24 +196,67 @@
           <span class="text-cyan-400 font-bold">3D Orbit:</span> Left-Click Drag = Rotate | Scroll = Zoom | Right-Click = Pan
         </div>
 
-        <!-- Live First-Person Mast Camera PiP HUD (Authentic VLM Input Feed) -->
-        <div id="pip-container" class="absolute bottom-3 left-3 bg-slate-950/95 backdrop-blur border border-cyan-500/70 rounded-lg p-1.5 shadow-2xl z-10 font-mono pointer-events-auto flex flex-col gap-1">
+        <!-- Industry-Grade Dual Stereo Camera & Sweeping ToF LiDAR Avionics Console -->
+        <div id="pip-container" class="absolute bottom-2 left-2 bg-slate-950/95 backdrop-blur border border-cyan-500/70 rounded-lg p-1.5 shadow-2xl z-10 font-mono pointer-events-auto flex flex-col gap-1 w-[316px]">
+          <!-- Header Bar -->
           <div class="flex items-center justify-between text-[10px] text-cyan-300 font-bold px-1">
             <div class="flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-              <span>ROVER MAST CAM (VLM INPUT)</span>
+              <span>DUAL STEREO CAM (B=76mm)</span>
             </div>
-            <span id="pip-fps-badge" class="text-[9px] text-emerald-400 font-mono">RTX 5060 VLM</span>
+            <span id="pip-fps-badge" class="text-[9px] text-emerald-400 font-mono">30 FPS • 72° FOV</span>
           </div>
-          <canvas id="pipCanvas" width="220" height="130" class="rounded border border-slate-800 bg-[#05070e] block"></canvas>
-          <div class="flex justify-between items-center text-[9px] text-slate-300 px-0.5">
-            <span id="pip-directive-text" class="text-amber-300 font-bold">VLM: NOMINAL_CRUISE</span>
-            <span class="text-slate-500">22cm Mast POV</span>
+
+          <!-- Dual Stereo Camera Canvas (CAM-L and CAM-R Viewports) -->
+          <div class="relative w-[302px] h-[96px] rounded border border-slate-800 bg-[#030611] overflow-hidden">
+            <canvas id="pipCanvas" width="302" height="96" class="block"></canvas>
+            <canvas id="pipOverlayCanvas" width="302" height="96" class="absolute inset-0 pointer-events-none block"></canvas>
+            <!-- Camera Viewport Labels -->
+            <div class="absolute top-1 left-1.5 text-[7.5px] font-bold text-cyan-300/90 bg-slate-950/70 px-1 py-0.5 rounded border border-cyan-900/50">CAM-L (PORT)</div>
+            <div class="absolute top-1 right-1.5 text-[7.5px] font-bold text-cyan-300/90 bg-slate-950/70 px-1 py-0.5 rounded border border-cyan-900/50">CAM-R (STBD)</div>
+            <!-- Center Split Line Indicator -->
+            <div class="absolute top-0 bottom-0 left-1/2 w-[1px] bg-cyan-500/40 pointer-events-none"></div>
+          </div>
+
+          <!-- Dual ToF LiDAR Matrix & PCA Terrain Traversability Bar -->
+          <div class="grid grid-cols-2 gap-1.5 text-[8.5px] bg-slate-900/90 p-1.5 rounded border border-slate-800">
+            <!-- Left Column: ToF LiDAR Multizone Range Grid -->
+            <div class="flex flex-col gap-0.5">
+              <div class="flex justify-between items-center text-[7.5px] text-slate-400">
+                <span class="text-amber-400 font-bold">DUAL ToF LiDAR</span>
+                <span id="tof-servo-angle" class="text-cyan-300 font-mono">SWEEP: 0.0°</span>
+              </div>
+              <canvas id="tofHeatmapCanvas" width="138" height="22" class="w-full h-[22px] rounded border border-slate-700 bg-slate-950 block"></canvas>
+              <div class="flex justify-between text-[7px] text-slate-500">
+                <span>L-ToF (-14°)</span>
+                <span>R-ToF (+14°)</span>
+              </div>
+            </div>
+
+            <!-- Right Column: PCA Ground Plane & Traversability Stats -->
+            <div class="flex flex-col justify-between text-[7.5px]">
+              <div>
+                <span class="text-slate-400">PCA SLOPE:</span>
+                <span id="pca-slope-val" class="text-emerald-400 font-bold ml-1">0.0° (SAFE)</span>
+              </div>
+              <div>
+                <span class="text-slate-400">PCA NORMAL:</span>
+                <span id="pca-normal-val" class="text-cyan-300 font-mono ml-1">[0, 0, 1]</span>
+              </div>
+              <div>
+                <span class="text-slate-400">ROUGHNESS:</span>
+                <span id="pca-roughness-val" class="text-amber-300 font-mono ml-1">0.01m</span>
+              </div>
+              <div class="flex items-center justify-between pt-0.5 border-t border-slate-800">
+                <span class="text-slate-400">AVIONICS:</span>
+                <span id="pip-directive-text" class="text-emerald-300 font-bold">NOMINAL</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Legend / Key Overlay (Positioned beside PiP HUD) -->
-        <div class="absolute bottom-3 left-[245px] hidden sm:flex bg-slate-950/85 backdrop-blur border border-slate-800 p-2 rounded-lg text-[10px] gap-3 text-slate-300 font-mono z-10">
+        <div class="absolute bottom-2 left-[328px] hidden sm:flex bg-slate-950/85 backdrop-blur border border-slate-800 p-1.5 rounded-lg text-[9px] gap-2.5 text-slate-300 font-mono z-10">
           <div class="flex items-center gap-1">
             <span class="w-2.5 h-2.5 rounded-full border border-sky-400 bg-sky-900/60"></span>
             <span>Craters</span>
@@ -1236,10 +1279,22 @@
     let rayLines = [];
     let activeCameraMode = 'orbit';
 
-    // Dedicated Rover Mast Camera & Real-Time Hardware PiP Renderer
+    // Dedicated Dual Stereo Cameras & Sweeping ToF LiDAR Avionics
     let pipRenderer, mastCamera, mastCameraAnchor, mastTarget;
+    let stereoCamLeft, stereoCamRight, stereoLeftAnchor, stereoLeftTarget, stereoRightAnchor, stereoRightTarget;
     const mastWorldPos = new THREE.Vector3();
     const mastTargetPos = new THREE.Vector3();
+    const stereoLeftWorldPos = new THREE.Vector3();
+    const stereoLeftTargetPos = new THREE.Vector3();
+    const stereoRightWorldPos = new THREE.Vector3();
+    const stereoRightTargetPos = new THREE.Vector3();
+
+    // ToF LiDAR Point Cloud & PCA Avionics State
+    let tofPointCloud, tofPositions, tofColors, maxTofPoints = 300;
+    let activeTofHits = [];
+    let recentTofCloud = [];
+    let pcaPlaneData = { normal: [0, 0, 1], slopeDeg: 0, roughness: 0.01, status: 'NOMINAL' };
+    let tofHeatmapGrid = { left: [], right: [] };
 
     // Closed-Loop VLM Actuation & Flight Variables
     let vlmSteerBias = 0.0;
@@ -1267,13 +1322,17 @@
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      // Initialize Dedicated Hardware PiP Renderer for First-Person Mast Camera Feed
+      // Initialize Dedicated Hardware PiP Renderer for Dual Stereo Camera Feed (CAM-L and CAM-R)
       const pipCanvas = document.getElementById('pipCanvas');
       if (pipCanvas) {
         pipRenderer = new THREE.WebGLRenderer({ canvas: pipCanvas, antialias: false, preserveDrawingBuffer: true });
-        pipRenderer.setSize(220, 130);
+        pipRenderer.setSize(302, 96);
         pipRenderer.setPixelRatio(1);
+        pipRenderer.autoClear = false;
       }
+      stereoCamLeft = new THREE.PerspectiveCamera(72, 149 / 96, 0.03, 35);
+      stereoCamRight = new THREE.PerspectiveCamera(72, 149 / 96, 0.03, 35);
+      mastCamera = stereoCamLeft; // backward-compatibility anchor
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
@@ -1326,6 +1385,7 @@
       build3DBoulders();
       build3DGoalMarker();
       build3DSensorRays();
+      build3DToFPointCloud();
       build3DTrajectory();
       build3DFailureMarkers();
       buildDustSystem();
@@ -1674,6 +1734,7 @@
     let suspArms = {};
     let roverParts = {
       mastHead: null,
+      tofServoHead: null,
       dishHead: null,
       beaconMat: null,
       rockerLeft: null,
@@ -1683,303 +1744,387 @@
     function build3DRover() {
       roverGroup = new THREE.Group();
 
-      // Aerospace Materials
-      const carbonTubMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.35, metalness: 0.82 });
-      const goldFoilMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.24, metalness: 0.92 });
-      const solarPanelMat = new THREE.MeshStandardMaterial({ color: 0x0c1938, roughness: 0.22, metalness: 0.75 });
-      const titaniumMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.35, metalness: 0.85 });
-      const wheelMeshMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.65, metalness: 0.60 });
-      const grouserMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.45, metalness: 0.80 });
-      const hubGoldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.28, metalness: 0.88 });
-      const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.12, metalness: 0.96 });
-      const springMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.35, metalness: 0.70 });
-      const servoMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.30, metalness: 0.72 });
-      const dishWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.40, metalness: 0.25, side: THREE.DoubleSide });
-      const ledGreen = new THREE.MeshBasicMaterial({ color: 0x10b981 });
-      const ledBlue = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
-      const ledHeadlamp = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-      const beaconMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
-      roverParts.beaconMat = beaconMat;
+      // --- Authentic Materials ---
+      // 1. Bronze / Gold 3D Printed Corrugated Chassis & Wheel Material (from User CAD Image 1 & Prototype Image 2)
+      const pragyanBronzeMat = new THREE.MeshStandardMaterial({
+        color: 0xb57838,
+        roughness: 0.46,
+        metalness: 0.68
+      });
+      // 2. White Structural 3D-Printed Top Deck & Rocker-Bogie Linkages (from User CAD Image 1 & 2)
+      const deckWhiteMat = new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
+        roughness: 0.32,
+        metalness: 0.12
+      });
+      const rockerLinkWhiteMat = new THREE.MeshStandardMaterial({
+        color: 0xf1f5f9,
+        roughness: 0.38,
+        metalness: 0.15
+      });
+      // 3. Yellow TT DC Gearmotor Casings with Silver Motor Cans (from User Prototype Image 2)
+      const motorYellowMat = new THREE.MeshStandardMaterial({
+        color: 0xfacc15,
+        roughness: 0.42,
+        metalness: 0.15
+      });
+      const motorSilverMat = new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        roughness: 0.22,
+        metalness: 0.92
+      });
+      // 4. Electronics & Sensors (Dual Cameras & Central Servo + ToF Triangle)
+      const pcbGreenMat = new THREE.MeshStandardMaterial({
+        color: 0x15803d,
+        roughness: 0.45,
+        metalness: 0.25
+      });
+      const servoBlueMat = new THREE.MeshStandardMaterial({
+        color: 0x2563eb,
+        roughness: 0.35,
+        metalness: 0.22
+      });
+      const lensBlackMat = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        roughness: 0.25,
+        metalness: 0.85
+      });
+      const opticalGlassMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+      const tofSensorMat = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        roughness: 0.25,
+        metalness: 0.88
+      });
+      const tofApertureMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+      const solarCellMat = new THREE.MeshStandardMaterial({
+        color: 0x1e3a8a,
+        roughness: 0.24,
+        metalness: 0.78
+      });
+      const wireRedMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+      const wireBlackMat = new THREE.MeshBasicMaterial({ color: 0x1e293b });
+      const titaniumHardwareMat = new THREE.MeshStandardMaterial({
+        color: 0x94a3b8,
+        roughness: 0.35,
+        metalness: 0.85
+      });
+      const beaconGreenMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+      roverParts.beaconMat = beaconGreenMat;
 
-      const chassisBaseY = 0.052; // Height of chassis tub above local origin
+      const chassisBaseY = 0.052;
+      const tubWidth = 0.118;
+      const tubLength = 0.210;
+      const tubHeight = 0.054;
 
-      // 1. Central Warm Electronics Box (WEB) Core & Gold Kapton MLI Cladding
-      const spineWidth = 0.088;
-      const spineLength = 0.25;
-      const spineHeight = 0.058;
-      const centralBay = new THREE.Mesh(new THREE.BoxGeometry(spineWidth, spineHeight, spineLength), carbonTubMat);
-      centralBay.position.set(0, chassisBaseY, 0);
-      centralBay.castShadow = true;
-      centralBay.receiveShadow = true;
-      roverGroup.add(centralBay);
+      // =========================================================================
+      // 1. CENTRAL BODY CHASSIS TUB (Matching User CAD Image 1 & Pragyan Prototype)
+      // =========================================================================
+      const chassisTub = new THREE.Group();
+      chassisTub.position.set(0, chassisBaseY, 0);
 
-      // Gold Kapton MLI Side & Top Thermal Blankets
-      const goldWrap = new THREE.Mesh(new THREE.BoxGeometry(spineWidth + 0.004, spineHeight * 0.78, spineLength * 0.88), goldFoilMat);
-      goldWrap.position.set(0, chassisBaseY, -0.005);
-      goldWrap.castShadow = true;
-      roverGroup.add(goldWrap);
+      // Main Bronze Corrugated Tub Enclosure
+      const tubBody = new THREE.Mesh(new THREE.BoxGeometry(tubWidth, tubHeight, tubLength), pragyanBronzeMat);
+      tubBody.castShadow = true;
+      tubBody.receiveShadow = true;
+      chassisTub.add(tubBody);
 
-      // Chamfered Front Hazard Bumper & Dual LED Floodlight Bar
-      const frontBumper = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.018, 0.022), titaniumMat);
-      frontBumper.position.set(0, chassisBaseY - 0.014, spineLength / 2 + 0.010);
-      frontBumper.castShadow = true;
-      roverGroup.add(frontBumper);
+      // Stepped-down front profile (higher at the back, stepped down in front as seen in Image 1)
+      const frontStep = new THREE.Mesh(new THREE.BoxGeometry(tubWidth * 0.96, tubHeight * 0.32, tubLength * 0.28), pragyanBronzeMat);
+      frontStep.position.set(0, -tubHeight * 0.24, tubLength * 0.36);
+      chassisTub.add(frontStep);
 
+      // White Upper Deck Cover Plate with Chamfered Rim (from Image 1 & 2)
+      const topDeck = new THREE.Mesh(new THREE.BoxGeometry(tubWidth + 0.006, 0.007, tubLength + 0.006), deckWhiteMat);
+      topDeck.position.set(0, tubHeight / 2 + 0.0035, 0);
+      topDeck.castShadow = true;
+      chassisTub.add(topDeck);
+
+      // Front Embossed "PRAGYAN" / "LUNAR ROVER" Nameplate
+      const nameplate = new THREE.Mesh(new THREE.BoxGeometry(tubWidth * 0.58, 0.016, 0.004), pragyanBronzeMat);
+      nameplate.position.set(0, 0, tubLength / 2 + 0.002);
+      chassisTub.add(nameplate);
+
+      // Side Diamond Cutouts / Wiring Ports (from Image 1)
       for (const side of [-1, 1]) {
-        const lampHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.008, 0.012, 12), carbonTubMat);
-        lampHousing.rotation.x = Math.PI / 2;
-        lampHousing.position.set(side * 0.036, chassisBaseY - 0.012, spineLength / 2 + 0.018);
-        roverGroup.add(lampHousing);
-
-        const lampLens = new THREE.Mesh(new THREE.CircleGeometry(0.006, 12), ledHeadlamp);
-        lampLens.position.set(side * 0.036, chassisBaseY - 0.012, spineLength / 2 + 0.025);
-        roverGroup.add(lampLens);
+        const ventDiamond = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.014, 0.014), deckWhiteMat);
+        ventDiamond.rotation.x = Math.PI / 4;
+        ventDiamond.position.set(side * (tubWidth / 2 + 0.001), tubHeight * 0.18, 0.045);
+        chassisTub.add(ventDiamond);
       }
 
-      // 2. Deployable Photovoltaic Solar Wing Decks (Left & Right Outriggers)
+      roverGroup.add(chassisTub);
+
+      // =========================================================================
+      // 2. FRONT SENSOR DECK (2 Cameras: Left & Right + Center Servo Triangle 2-ToF)
+      // =========================================================================
+      const deckSurfaceY = chassisBaseY + tubHeight / 2 + 0.007;
+
+      // --- Left Camera Module (Raspberry Pi Camera style from Image 2) ---
+      const leftCamGroup = new THREE.Group();
+      leftCamGroup.position.set(0.038, deckSurfaceY + 0.014, tubLength / 2 - 0.024);
+      const leftStandoff = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.014, 0.008), deckWhiteMat);
+      leftStandoff.position.y = -0.007;
+      leftCamGroup.add(leftStandoff);
+      const leftPCB = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.022, 0.003), pcbGreenMat);
+      leftCamGroup.add(leftPCB);
+      const leftLens = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.007, 0.011, 14), lensBlackMat);
+      leftLens.rotation.x = Math.PI / 2;
+      leftLens.position.set(0, 0, 0.007);
+      leftCamGroup.add(leftLens);
+      const leftGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.012, 12), opticalGlassMat);
+      leftGlass.rotation.x = Math.PI / 2;
+      leftGlass.position.set(0, 0, 0.008);
+      leftCamGroup.add(leftGlass);
+
+      // Dedicated Left Stereo Camera Anchor & Target (CAM-L Port Side)
+      stereoLeftAnchor = new THREE.Object3D();
+      stereoLeftAnchor.position.set(0, 0, 0.012);
+      leftCamGroup.add(stereoLeftAnchor);
+      stereoLeftTarget = new THREE.Object3D();
+      stereoLeftTarget.position.set(0, -0.06, 2.2);
+      leftCamGroup.add(stereoLeftTarget);
+
+      roverGroup.add(leftCamGroup);
+
+      // --- Right Camera Module (Matching Camera from Image 2) ---
+      const rightCamGroup = new THREE.Group();
+      rightCamGroup.position.set(-0.038, deckSurfaceY + 0.014, tubLength / 2 - 0.024);
+      const rightStandoff = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.014, 0.008), deckWhiteMat);
+      rightStandoff.position.y = -0.007;
+      rightCamGroup.add(rightStandoff);
+      const rightPCB = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.022, 0.003), pcbGreenMat);
+      rightCamGroup.add(rightPCB);
+      const rightLens = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.007, 0.011, 14), lensBlackMat);
+      rightLens.rotation.x = Math.PI / 2;
+      rightLens.position.set(0, 0, 0.007);
+      rightCamGroup.add(rightLens);
+      const rightGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.012, 12), opticalGlassMat);
+      rightGlass.rotation.x = Math.PI / 2;
+      rightGlass.position.set(0, 0, 0.008);
+      rightCamGroup.add(rightGlass);
+
+      // Dedicated Right Stereo Camera Anchor & Target (CAM-R Starboard Side)
+      stereoRightAnchor = new THREE.Object3D();
+      stereoRightAnchor.position.set(0, 0, 0.012);
+      rightCamGroup.add(stereoRightAnchor);
+      stereoRightTarget = new THREE.Object3D();
+      stereoRightTarget.position.set(0, -0.06, 2.2);
+      rightCamGroup.add(stereoRightTarget);
+
+      roverGroup.add(rightCamGroup);
+
+      // --- Central Micro-Servo Base (Blue 9g servo casing from Image 2) ---
+      const servoBase = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.022, 0.024), servoBlueMat);
+      servoBase.position.set(0, deckSurfaceY + 0.011, tubLength / 2 - 0.028);
+      roverGroup.add(servoBase);
+
+      // --- Pan-Tilt Scanning Turret with Triangle Bracket & 2 ToF Sensors (Matching Image 3) ---
+      const tofServoHead = new THREE.Group();
+      tofServoHead.position.set(0, deckSurfaceY + 0.024, tubLength / 2 - 0.028);
+
+      // Triangular / Wedge Bracket (matching CAD model in Image 3)
+      const triGroup = new THREE.Group();
+      const triWedge = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.022, 0.034, 3), pragyanBronzeMat);
+      triWedge.rotation.y = Math.PI / 6;
+      triWedge.rotation.z = Math.PI / 2;
+      triWedge.scale.set(0.75, 1.15, 0.85);
+      triWedge.position.set(0, 0.012, 0);
+      triWedge.castShadow = true;
+      triGroup.add(triWedge);
+
+      // Bottom circular servo horn coupling ring (from Image 3)
+      const servoHornRing = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.004, 14), titaniumHardwareMat);
+      servoHornRing.position.set(0, 0.001, 0);
+      triGroup.add(servoHornRing);
+
+      // Dual Time-of-Flight (ToF) Sensors Mounted on Front Flanks of Triangle
       for (const side of [-1, 1]) {
-        const wingGroup = new THREE.Group();
-        wingGroup.position.set(side * 0.072, chassisBaseY + 0.022, -0.01);
-        wingGroup.rotation.z = -side * 0.06; // Slight dihedral angle
+        const tofSensor = new THREE.Group();
+        tofSensor.position.set(side * 0.018, 0.012, 0.012);
+        tofSensor.rotation.y = -side * 0.16; // Angled outward for wide obstacle scanning
 
-        const wingFrame = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.006, 0.21), goldFoilMat);
-        wingFrame.castShadow = true;
-        wingGroup.add(wingFrame);
+        const tofBoard = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.014, 0.003), tofSensorMat);
+        tofSensor.add(tofBoard);
 
-        const solarCells = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.007, 0.195), solarPanelMat);
-        solarCells.position.y = 0.001;
-        wingGroup.add(solarCells);
-
-        roverGroup.add(wingGroup);
+        for (const ap of [-0.004, 0.004]) {
+          const aperture = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.004, 8), tofApertureMat);
+          aperture.rotation.x = Math.PI / 2;
+          aperture.position.set(ap, 0, 0.002);
+          tofSensor.add(aperture);
+        }
+        triGroup.add(tofSensor);
       }
 
-      // 3. Rear Multi-Mission RTG Power Unit & Thermal Radiator Fins
-      const rtgCylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.020, 0.055, 14), titaniumMat);
-      rtgCylinder.rotation.x = Math.PI / 3;
-      rtgCylinder.position.set(0, chassisBaseY + 0.012, -spineLength / 2 - 0.022);
-      rtgCylinder.castShadow = true;
-      roverGroup.add(rtgCylinder);
+      tofServoHead.add(triGroup);
 
-      for (let i = -0.06; i <= 0.04; i += 0.016) {
-        const fin = new THREE.Mesh(new THREE.BoxGeometry(spineWidth * 0.85, 0.008, 0.003), servoMat);
-        fin.position.set(0, chassisBaseY + spineHeight / 2 + 0.004, i);
-        roverGroup.add(fin);
-      }
-
-      // 4. High-Gain S-Band Parabolic Dish Antenna (Rear Deck)
-      const dishPedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.007, 0.038, 10), titaniumMat);
-      dishPedestal.position.set(-0.024, chassisBaseY + spineHeight / 2 + 0.018, -0.085);
-      roverGroup.add(dishPedestal);
-
-      const dishHead = new THREE.Group();
-      dishHead.position.set(-0.024, chassisBaseY + spineHeight / 2 + 0.040, -0.085);
-      const dishBowl = new THREE.Mesh(
-        new THREE.SphereGeometry(0.026, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.42),
-        dishWhiteMat
-      );
-      dishBowl.rotation.x = -Math.PI * 0.65;
-      dishBowl.castShadow = true;
-      dishHead.add(dishBowl);
-
-      const feedHorn = new THREE.Mesh(new THREE.CylinderGeometry(0.002, 0.004, 0.022, 8), goldFoilMat);
-      feedHorn.rotation.x = Math.PI * 0.35;
-      feedHorn.position.set(0, 0.010, 0.008);
-      dishHead.add(feedHorn);
-      roverGroup.add(dishHead);
-      roverParts.dishHead = dishHead;
-
-      // Rear Telemetry Status Beacon Mast
-      const beaconPole = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.045, 8), titaniumMat);
-      beaconPole.position.set(0.026, chassisBaseY + spineHeight / 2 + 0.022, -0.095);
-      roverGroup.add(beaconPole);
-
-      const beaconGlobe = new THREE.Mesh(new THREE.SphereGeometry(0.007, 10, 10), beaconMat);
-      beaconGlobe.position.set(0.026, chassisBaseY + spineHeight / 2 + 0.046, -0.095);
-      roverGroup.add(beaconGlobe);
-
-      // Status Avionics Deck LEDs
-      const pwrLed = new THREE.Mesh(new THREE.SphereGeometry(0.0045, 8, 8), ledGreen);
-      pwrLed.position.set(-0.022, chassisBaseY + spineHeight / 2 + 0.005, 0.095);
-      roverGroup.add(pwrLed);
-
-      const commLed = new THREE.Mesh(new THREE.SphereGeometry(0.0045, 8, 8), ledBlue);
-      commLed.position.set(0.022, chassisBaseY + spineHeight / 2 + 0.005, 0.095);
-      roverGroup.add(commLed);
-
-      // 5. Articulated Remote Sensing Mast & Pan-Tilt Stereo Camera Head
-      const mastPole = new THREE.Mesh(new THREE.CylinderGeometry(0.0075, 0.009, 0.125, 14), titaniumMat);
-      mastPole.position.set(0, chassisBaseY + spineHeight / 2 + 0.060, 0.078);
-      mastPole.castShadow = true;
-      roverGroup.add(mastPole);
-
-      const mastCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.014, 12), servoMat);
-      mastCollar.position.set(0, chassisBaseY + spineHeight / 2 + 0.095, 0.078);
-      roverGroup.add(mastCollar);
-
-      const mastHead = new THREE.Group();
-      mastHead.position.set(0, chassisBaseY + spineHeight / 2 + 0.128, 0.078);
-
-      const camPod = new THREE.Mesh(new THREE.BoxGeometry(0.062, 0.026, 0.034), carbonTubMat);
-      camPod.castShadow = true;
-      mastHead.add(camPod);
-
-      const camVisor = new THREE.Mesh(new THREE.BoxGeometry(0.066, 0.006, 0.040), goldFoilMat);
-      camVisor.position.set(0, 0.013, 0.003);
-      mastHead.add(camVisor);
-
-      // Dual Stereo Vision Lens Barrels + Center Laser Rangefinder Eye
-      const lensMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
-      for (const side of [-1, 1]) {
-        const lensBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.010, 14), titaniumMat);
-        lensBarrel.rotation.x = Math.PI / 2;
-        lensBarrel.position.set(side * 0.019, -0.001, 0.018);
-        mastHead.add(lensBarrel);
-
-        const lensGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.011, 12), lensMat);
-        lensGlass.rotation.x = Math.PI / 2;
-        lensGlass.position.set(side * 0.019, -0.001, 0.019);
-        mastHead.add(lensGlass);
-      }
-
-      const lidarEye = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.010, 10), new THREE.MeshBasicMaterial({ color: 0xf43f5e }));
-      lidarEye.rotation.x = Math.PI / 2;
-      lidarEye.position.set(0, 0.002, 0.019);
-      mastHead.add(lidarEye);
-
-      // Forward Searchlight Spot (mounted inside mastHead so beam turns with camera!)
-      const spot = new THREE.SpotLight(0xfffbeb, 1.4, 4.2, Math.PI / 5.5, 0.35);
-      spot.position.set(0, 0.0, 0.022);
-      const spotTarget = new THREE.Object3D();
-      spotTarget.position.set(0, -0.22, 1.6);
-      mastHead.add(spotTarget);
-      spot.target = spotTarget;
-      mastHead.add(spot);
-
-      // Dedicated Mast Camera Anchor & Forward Look Target (Locked to Pan-Tilt Mast Head)
+      // Dedicated Forward Sensory Camera Anchor
       mastCameraAnchor = new THREE.Object3D();
-      mastCameraAnchor.position.set(0, 0.005, 0.025);
-      mastHead.add(mastCameraAnchor);
+      mastCameraAnchor.position.set(0, 0.015, 0.022);
+      tofServoHead.add(mastCameraAnchor);
 
       mastTarget = new THREE.Object3D();
-      mastTarget.position.set(0, -0.12, 1.85);
-      mastHead.add(mastTarget);
+      mastTarget.position.set(0, -0.08, 1.85);
+      tofServoHead.add(mastTarget);
 
-      roverGroup.add(mastHead);
-      roverParts.mastHead = mastHead;
+      roverGroup.add(tofServoHead);
+      roverParts.mastHead = tofServoHead;
+      roverParts.tofServoHead = tofServoHead;
 
-      // 6. Side Rocker-Bogie Differential Pivot Bars
-      for (const side of [-1, 1]) {
-        const rockerHub = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.016, 12), servoMat);
-        rockerHub.rotation.z = Math.PI / 2;
-        rockerHub.position.set(side * (spineWidth / 2 + 0.008), chassisBaseY - 0.004, 0);
-        roverGroup.add(rockerHub);
+      // =========================================================================
+      // 3. REAR DECK: HINGED SOLAR PANEL & TELEMETRY ANTENNA (from Image 2)
+      // =========================================================================
+      const solarGroup = new THREE.Group();
+      solarGroup.position.set(0, deckSurfaceY + 0.014, -tubLength / 2 + 0.055);
+      solarGroup.rotation.x = -Math.PI / 4.2;
 
-        const rockerTube = new THREE.Mesh(new THREE.BoxGeometry(0.009, 0.012, 0.19), titaniumMat);
-        rockerTube.position.set(side * (spineWidth / 2 + 0.014), chassisBaseY - 0.004, 0);
-        rockerTube.castShadow = true;
-        roverGroup.add(rockerTube);
-        if (side > 0) roverParts.rockerLeft = rockerTube;
-        else roverParts.rockerRight = rockerTube;
-      }
+      const solarFrame = new THREE.Mesh(new THREE.BoxGeometry(tubWidth * 0.88, 0.005, 0.098), pragyanBronzeMat);
+      solarFrame.castShadow = true;
+      solarGroup.add(solarFrame);
 
-      // 7. 4-Corner Articulated Swing-Arm Suspension + 4WS Steering Knuckles + Spoked Grouser Wheels
-      // Note: In roverGroup (+Z forward, +Y up), +X is Left and -X is Right
+      const solarPhotocells = new THREE.Mesh(new THREE.BoxGeometry(tubWidth * 0.82, 0.006, 0.090), solarCellMat);
+      solarPhotocells.position.y = 0.001;
+      solarGroup.add(solarPhotocells);
+
+      const solarServo = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.016, 0.018), servoBlueMat);
+      solarServo.position.set(0, -0.010, -0.020);
+      solarGroup.add(solarServo);
+
+      roverGroup.add(solarGroup);
+
+      const antennaPole = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0035, 0.075, 10), deckWhiteMat);
+      antennaPole.position.set(-tubWidth * 0.36, deckSurfaceY + 0.038, -tubLength / 2 + 0.025);
+      antennaPole.castShadow = true;
+      roverGroup.add(antennaPole);
+
+      const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.0045, 8, 8), beaconGreenMat);
+      antennaTip.position.set(-tubWidth * 0.36, deckSurfaceY + 0.076, -tubLength / 2 + 0.025);
+      roverGroup.add(antennaTip);
+
+      // =========================================================================
+      // 4. 6-WHEEL ROCKER-BOGIE SUSPENSION & YELLOW TT GEARMOTORS (from Image 2)
+      // =========================================================================
       suspArms = {};
-      const wheelRadius = 0.042;
-      const wheelWidth = 0.036;
-      const armMountY = 0.044;
-      const armPositions = {
-        fl: { x: 0.062, z: 0.095, signX: 1, signZ: 1 },
-        fr: { x: -0.062, z: 0.095, signX: -1, signZ: 1 },
-        rl: { x: 0.062, z: -0.095, signX: 1, signZ: -1 },
-        rr: { x: -0.062, z: -0.095, signX: -1, signZ: -1 }
+      const wheelRadius = 0.040;
+      const wheelWidth = 0.034;
+      const wheelTrackX = 0.088;
+
+      const wheelPositions = {
+        fl: { x: wheelTrackX, z: 0.092, signX: 1, signZ: 1, isBogie: true },
+        ml: { x: wheelTrackX + 0.004, z: 0.000, signX: 1, signZ: 0, isBogie: true },
+        rl: { x: wheelTrackX, z: -0.092, signX: 1, signZ: -1, isBogie: false },
+        fr: { x: -wheelTrackX, z: 0.092, signX: -1, signZ: 1, isBogie: true },
+        mr: { x: -wheelTrackX - 0.004, z: 0.000, signX: -1, signZ: 0, isBogie: true },
+        rr: { x: -wheelTrackX, z: -0.092, signX: -1, signZ: -1, isBogie: false }
       };
 
-      for (const [key, pos] of Object.entries(armPositions)) {
-        const armGroup = new THREE.Group();
-        armGroup.position.set(pos.x, armMountY, pos.z);
+      for (const side of [-1, 1]) {
+        const rockerGroup = new THREE.Group();
+        const pivotX = side * (tubWidth / 2 + 0.008);
+        const pivotY = chassisBaseY - 0.002;
+        rockerGroup.position.set(pivotX, pivotY, 0);
 
-        // Articulated Swing-Arm Strut (angles outward & down to wheel hub)
-        const strutArm = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.013, 0.022), servoMat);
-        strutArm.position.set(pos.signX * 0.018, -0.010, 0);
-        strutArm.rotation.z = -pos.signX * 0.32;
-        strutArm.castShadow = true;
-        armGroup.add(strutArm);
+        const pivotPin = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.016, 12), titaniumHardwareMat);
+        pivotPin.rotation.z = Math.PI / 2;
+        rockerGroup.add(pivotPin);
 
-        // Upper Shock Absorber Body
-        const damperSleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.0065, 0.0065, 0.032, 10), carbonTubMat);
-        damperSleeve.position.set(pos.signX * 0.024, 0.014, 0);
-        armGroup.add(damperSleeve);
+        const rearArm = new THREE.Mesh(new THREE.BoxGeometry(0.010, 0.014, 0.100), rockerLinkWhiteMat);
+        rearArm.position.set(0, -0.012, -0.046);
+        rearArm.rotation.x = 0.24;
+        rearArm.castShadow = true;
+        rockerGroup.add(rearArm);
 
-        // Red Coil-Over Suspension Spring
-        const coilSpring = new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.0085, 0.026, 10, 4, true), springMat);
-        coilSpring.position.set(pos.signX * 0.024, 0.004, 0);
-        armGroup.add(coilSpring);
+        const forwardArm = new THREE.Mesh(new THREE.BoxGeometry(0.010, 0.014, 0.065), rockerLinkWhiteMat);
+        forwardArm.position.set(0, -0.008, 0.030);
+        forwardArm.rotation.x = -0.22;
+        forwardArm.castShadow = true;
+        rockerGroup.add(forwardArm);
 
-        // Chrome Telescoping Damper Piston Rod
-        const damperRod = new THREE.Mesh(new THREE.CylinderGeometry(0.0038, 0.0038, 0.032, 8), chromeMat);
-        damperRod.position.set(pos.signX * 0.024, -0.008, 0);
-        armGroup.add(damperRod);
+        const bogieGroup = new THREE.Group();
+        bogieGroup.position.set(0, -0.015, 0.052);
 
-        // Steerable Knuckle Group (rotates around Y for 4-Wheel Steering & Tank Pivot)
-        const steerGroup = new THREE.Group();
-        steerGroup.position.set(pos.signX * 0.036, -0.022, 0);
+        const bogiePin = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.014, 10), titaniumHardwareMat);
+        bogiePin.rotation.z = Math.PI / 2;
+        bogieGroup.add(bogiePin);
 
-        // Planetary Hub Gearbox Casing
-        const knuckleBracket = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.026, 0.028), titaniumMat);
-        knuckleBracket.position.set(-pos.signX * 0.008, 0.008, 0);
-        steerGroup.add(knuckleBracket);
+        const bogieBar = new THREE.Mesh(new THREE.BoxGeometry(0.009, 0.012, 0.092), rockerLinkWhiteMat);
+        bogieBar.position.set(0, -0.008, -0.006);
+        bogieBar.castShadow = true;
+        bogieGroup.add(bogieBar);
 
-        // Dedicated Axle Spin Group (rotates purely around local X for gimbal-lock-free rolling!)
+        rockerGroup.add(bogieGroup);
+        roverGroup.add(rockerGroup);
+
+        if (side > 0) roverParts.rockerLeft = rockerGroup;
+        else roverParts.rockerRight = rockerGroup;
+      }
+
+      for (const [key, pos] of Object.entries(wheelPositions)) {
+        const wheelAssembly = new THREE.Group();
+        wheelAssembly.position.set(pos.x, chassisBaseY - 0.016, pos.z);
+
+        // Yellow TT DC Gearmotor Casing (Identical to Image 2)
+        const motorGroup = new THREE.Group();
+        motorGroup.position.set(-pos.signX * 0.006, 0.018, 0);
+
+        const yellowBox = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.024, 0.016), motorYellowMat);
+        yellowBox.castShadow = true;
+        motorGroup.add(yellowBox);
+
+        const silverCan = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.016, 12), motorSilverMat);
+        silverCan.position.set(0, 0.016, 0);
+        motorGroup.add(silverCan);
+
+        const wireRed = new THREE.Mesh(new THREE.BoxGeometry(0.0015, 0.012, 0.0015), wireRedMat);
+        wireRed.position.set(-pos.signX * 0.004, 0.024, 0.003);
+        motorGroup.add(wireRed);
+        const wireBlack = new THREE.Mesh(new THREE.BoxGeometry(0.0015, 0.012, 0.0015), wireBlackMat);
+        wireBlack.position.set(-pos.signX * 0.004, 0.024, -0.003);
+        motorGroup.add(wireBlack);
+
+        wheelAssembly.add(motorGroup);
+
+        // Dedicated Wheel Spin Group (rotates around local X)
         const spinGroup = new THREE.Group();
 
-        // Woven Titanium-Mesh Tire Barrel
-        const tireBarrel = new THREE.Mesh(new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 24), wheelMeshMat);
+        const tireBarrel = new THREE.Mesh(
+          new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 20),
+          pragyanBronzeMat
+        );
         tireBarrel.rotation.z = Math.PI / 2;
         tireBarrel.castShadow = true;
         tireBarrel.receiveShadow = true;
         spinGroup.add(tireBarrel);
 
-        // Inner Gold Anodized Rim Ring
-        const innerRim = new THREE.Mesh(new THREE.CylinderGeometry(wheelRadius * 0.68, wheelRadius * 0.68, wheelWidth + 0.002, 18), hubGoldMat);
-        innerRim.rotation.z = Math.PI / 2;
-        spinGroup.add(innerRim);
+        const wheelHub = new THREE.Mesh(
+          new THREE.CylinderGeometry(wheelRadius * 0.52, wheelRadius * 0.52, wheelWidth + 0.003, 14),
+          pragyanBronzeMat
+        );
+        wheelHub.rotation.z = Math.PI / 2;
+        spinGroup.add(wheelHub);
 
-        // Central Dark Axle Cap
-        const axleCap = new THREE.Mesh(new THREE.CylinderGeometry(wheelRadius * 0.28, wheelRadius * 0.28, wheelWidth + 0.005, 12), carbonTubMat);
-        axleCap.rotation.z = Math.PI / 2;
-        spinGroup.add(axleCap);
-
-        // 6 High-Contrast Radial Spokes on Outer Wheel Face (makes rotation unmistakably clear!)
-        for (let s = 0; s < 6; s++) {
-          const sAngle = (s / 6) * Math.PI * 2;
-          const spoke = new THREE.Mesh(new THREE.BoxGeometry(wheelWidth + 0.004, 0.005, wheelRadius * 1.32), titaniumMat);
-          spoke.rotation.x = sAngle;
-          spinGroup.add(spoke);
-        }
-
-        // 12 Raised Titanium Grouser Cleats / Paddles around Tire Circumference
+        // 12 Aggressive Chevron Grouser Paddles (from Image 2)
         const numGrousers = 12;
         for (let g = 0; g < numGrousers; g++) {
           const gAngle = (g / numGrousers) * Math.PI * 2;
-          const grouser = new THREE.Mesh(new THREE.BoxGeometry(wheelWidth + 0.003, 0.005, 0.007), grouserMat);
-          grouser.position.set(0, Math.cos(gAngle) * (wheelRadius + 0.0015), Math.sin(gAngle) * (wheelRadius + 0.0015));
+          const grouser = new THREE.Mesh(
+            new THREE.BoxGeometry(wheelWidth + 0.002, 0.005, 0.007),
+            pragyanBronzeMat
+          );
+          grouser.position.set(0, Math.cos(gAngle) * (wheelRadius + 0.0018), Math.sin(gAngle) * (wheelRadius + 0.0018));
           grouser.rotation.x = -gAngle;
+          grouser.rotation.y = pos.signX * 0.18;
           grouser.castShadow = true;
           spinGroup.add(grouser);
         }
 
-        steerGroup.add(spinGroup);
-        armGroup.add(steerGroup);
-        roverGroup.add(armGroup);
+        wheelAssembly.add(spinGroup);
+        roverGroup.add(wheelAssembly);
 
         suspArms[key] = {
-          group: armGroup,
-          steerGroup: steerGroup,
+          group: wheelAssembly,
+          steerGroup: wheelAssembly,
           wheel: spinGroup,
-          damper: damperRod,
-          spring: coilSpring,
-          baseY: armMountY,
+          baseY: chassisBaseY - 0.016,
           signX: pos.signX,
           signZ: pos.signZ
         };
@@ -2122,6 +2267,27 @@
         scene.add(line);
         rayLines.push(line);
       }
+    }
+
+    function build3DToFPointCloud() {
+      if (tofPointCloud) scene.remove(tofPointCloud);
+      maxTofPoints = 320;
+      tofPositions = new Float32Array(maxTofPoints * 3);
+      tofColors = new Float32Array(maxTofPoints * 3);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(tofPositions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(tofColors, 3));
+      geo.setDrawRange(0, 0);
+
+      const mat = new THREE.PointsMaterial({
+        size: 0.055,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.92,
+        blending: THREE.AdditiveBlending
+      });
+      tofPointCloud = new THREE.Points(geo, mat);
+      scene.add(tofPointCloud);
     }
 
     function build3DTrajectory() {
@@ -2400,86 +2566,577 @@
       updateDemoBadgeUI();
     }
 
-    // --- 15-Beam Sensor Raycasting (Tightened to True Traversable Geometry) ---
+    // =========================================================================
+    // INDUSTRY-GRADE PHYSICAL PERCEPTION ENGINE: 3D RAYMARCHING, DUAL ToF, & PCA
+    // =========================================================================
+
+    // Physical 3D Laser Raymarching against Continuous Lunar Regolith & 3D Boulders
+    function castPhysical3DRay(orig, dir, maxRange = 2.6) {
+      const stepDt = 0.045; // 4.5 cm step resolution along beam
+      const wallLimit = ARENA_SIZE_M / 2.0 - 0.28;
+      let prevX = orig.x, prevY = orig.y, prevZ = orig.z;
+      let prevGroundZ = getElevation(prevX, prevY);
+
+      for (let t = 0.08; t <= maxRange; t += stepDt) {
+        const rx = orig.x + t * dir.x;
+        const ry = orig.y + t * dir.y;
+        const rz = orig.z + t * dir.z;
+
+        // 1. Boundary Wall Intersection
+        if (Math.abs(rx) > wallLimit || Math.abs(ry) > wallLimit) {
+          return {
+            hit: true,
+            dist: t,
+            rx: rx, ry: ry, rz: rz,
+            type: 'boulder',
+            isWall: true,
+            slopeDeg: 90,
+            normal: [0, 0, 1]
+          };
+        }
+
+        // 2. Physical 3D Boulder Intersections (3D Sphere/Rock Breccia Meshes)
+        for (let bIdx = 0; bIdx < boulders.length; bIdx++) {
+          const b = boulders[bIdx];
+          const dx = rx - b.x;
+          const dy = ry - b.y;
+          const dH2 = dx * dx + dy * dy;
+          if (dH2 < (b.r + 0.14) * (b.r + 0.14)) {
+            const bz = getElevation(b.x, b.y);
+            const centerZ = bz + b.r * 0.50;
+            const dz = rz - centerZ;
+            if (dH2 + dz * dz <= (b.r + 0.06) * (b.r + 0.06)) {
+              // Realistic SPAD photon detection noise
+              const noise = (Math.random() - 0.5) * 0.016;
+              const hitDist = Math.max(0.08, t + noise);
+              return {
+                hit: true,
+                dist: hitDist,
+                rx: orig.x + hitDist * dir.x,
+                ry: orig.y + hitDist * dir.y,
+                rz: orig.z + hitDist * dir.z,
+                type: 'boulder',
+                hitObj: b,
+                slopeDeg: 78,
+                normal: [dx / (b.r || 1), dy / (b.r || 1), dz / (b.r || 1)]
+              };
+            }
+          }
+        }
+
+        // 3. Continuous 3D Lunar Regolith Terrain Intersection
+        const groundZ = getElevation(rx, ry);
+        if (rz <= groundZ) {
+          // Beam intersects lunar regolith surface!
+          const denom = (prevZ - prevGroundZ) - (rz - groundZ);
+          const frac = Math.abs(denom) > 1e-5 ? Math.max(0, Math.min(1, (prevZ - prevGroundZ) / denom)) : 0.5;
+          const tExact = (t - stepDt) + frac * stepDt;
+
+          // Authentic VCSEL SPAD range jitter (Gaussian noise sigma = 12mm)
+          const u1 = Math.max(1e-6, Math.random());
+          const u2 = Math.random();
+          const gaussNoise = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2) * 0.012;
+          const measDist = Math.max(0.08, tExact + gaussNoise);
+
+          const hitX = orig.x + measDist * dir.x;
+          const hitY = orig.y + measDist * dir.y;
+          const hitZ = getElevation(hitX, hitY);
+
+          // Compute analytical surface normal via finite differences (delta = 5cm)
+          const delta = 0.05;
+          const dzdx = (getElevation(hitX + delta, hitY) - getElevation(hitX - delta, hitY)) / (2 * delta);
+          const dzdy = (getElevation(hitX, hitY + delta) - getElevation(hitX, hitY - delta)) / (2 * delta);
+          const normLen = Math.hypot(dzdx, dzdy, 1.0);
+          const nx = -dzdx / normLen;
+          const ny = -dzdy / normLen;
+          const nz = 1.0 / normLen;
+
+          // Slope inclination angle
+          const slopeDeg = Math.acos(Math.min(1.0, Math.abs(nz))) * (180 / Math.PI);
+
+          // Beam incidence angle: cos(alpha) = -dir . normal
+          const cosIncidence = -(dir.x * nx + dir.y * ny + dir.z * nz);
+
+          // Negative Obstacle / Crater Rim Detection (Grazing angle photon loss)
+          // When laser strikes at > 78.5 deg, specular scattering causes SPAD drop-off
+          if (cosIncidence <= 0.20) {
+            return {
+              hit: true,
+              dist: measDist,
+              rx: hitX, ry: hitY, rz: hitZ,
+              type: 'crater',
+              isDropoff: true,
+              slopeDeg: slopeDeg,
+              normal: [nx, ny, nz]
+            };
+          }
+
+          // Incline classification based on rover rollover thresholds
+          let hitType = 'clear';
+          if (slopeDeg > 34.0) {
+            hitType = 'crater'; // Severe non-traversable slope
+          } else if (slopeDeg > 22.0) {
+            hitType = 'caution_slope';
+          }
+
+          return {
+            hit: true,
+            dist: measDist,
+            rx: hitX, ry: hitY, rz: hitZ,
+            type: hitType,
+            slopeDeg: slopeDeg,
+            normal: [nx, ny, nz]
+          };
+        }
+
+        prevX = rx; prevY = ry; prevZ = rz;
+        prevGroundZ = groundZ;
+      }
+
+      // Ray exceeded max range without hitting terrain:
+      // If aimed downward (dir.z < -0.16), absence of return signals a crater bowl drop-off
+      if (dir.z < -0.16) {
+        const endX = orig.x + maxRange * dir.x;
+        const endY = orig.y + maxRange * dir.y;
+        return {
+          hit: false,
+          dist: maxRange,
+          rx: endX, ry: endY, rz: getElevation(endX, endY),
+          type: 'crater',
+          isDropoff: true,
+          slopeDeg: 42,
+          normal: [0, 0, 1]
+        };
+      }
+
+      return {
+        hit: false,
+        dist: maxRange,
+        rx: orig.x + maxRange * dir.x,
+        ry: orig.y + maxRange * dir.y,
+        rz: getElevation(orig.x + maxRange * dir.x, orig.y + maxRange * dir.y),
+        type: 'clear',
+        slopeDeg: 0,
+        normal: [0, 0, 1]
+      };
+    }
+
+    // Principal Component Analysis (PCA) Ground Plane & Roughness Estimator
+    function computePCAOnPointCloud(points) {
+      if (!points || points.length < 6) {
+        return { normal: [0, 0, 1], slopeDeg: 0, roughness: 0.01, status: 'NOMINAL' };
+      }
+
+      const N = points.length;
+      let meanX = 0, meanY = 0, meanZ = 0;
+      for (let i = 0; i < N; i++) {
+        meanX += points[i].x;
+        meanY += points[i].y;
+        meanZ += points[i].z;
+      }
+      meanX /= N; meanY /= N; meanZ /= N;
+
+      let cxx = 0, cyy = 0, czz = 0, cxy = 0, cxz = 0, cyz = 0;
+      for (let i = 0; i < N; i++) {
+        const dx = points[i].x - meanX;
+        const dy = points[i].y - meanY;
+        const dz = points[i].z - meanZ;
+        cxx += dx * dx;
+        cyy += dy * dy;
+        czz += dz * dz;
+        cxy += dx * dy;
+        cxz += dx * dz;
+        cyz += dy * dz;
+      }
+      cxx /= N; cyy /= N; czz /= N;
+      cxy /= N; cxz /= N; cyz /= N;
+
+      // 3x3 Jacobi Eigenvalue Solver
+      let V = [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+      ];
+      let A = [
+        [cxx, cxy, cxz],
+        [cxy, cyy, cyz],
+        [cxz, cyz, czz]
+      ];
+
+      for (let iter = 0; iter < 12; iter++) {
+        let p = 0, q = 1, maxVal = Math.abs(A[0][1]);
+        if (Math.abs(A[0][2]) > maxVal) { p = 0; q = 2; maxVal = Math.abs(A[0][2]); }
+        if (Math.abs(A[1][2]) > maxVal) { p = 1; q = 2; maxVal = Math.abs(A[1][2]); }
+        if (maxVal < 1e-7) break;
+
+        const diff = A[q][q] - A[p][p];
+        let t;
+        if (Math.abs(A[p][q]) < Math.abs(diff) * 1e-12) {
+          t = A[p][q] / diff;
+        } else {
+          const phi = diff / (2.0 * A[p][q]);
+          t = 1.0 / (Math.abs(phi) + Math.sqrt(phi * phi + 1.0));
+          if (phi < 0) t = -t;
+        }
+        const c = 1.0 / Math.sqrt(t * t + 1.0);
+        const s = t * c;
+        const tau = s / (1.0 + c);
+
+        const Apq = A[p][q];
+        A[p][q] = 0;
+        A[p][p] -= t * Apq;
+        A[q][q] += t * Apq;
+
+        for (let j = 0; j < 3; j++) {
+          if (j !== p && j !== q) {
+            const u = A[j][p], v = A[j][q];
+            A[j][p] = u - s * (v + u * tau);
+            A[p][j] = A[j][p];
+            A[j][q] = v + s * (u - v * tau);
+            A[q][j] = A[j][q];
+          }
+        }
+        for (let j = 0; j < 3; j++) {
+          const u = V[j][p], v = V[j][q];
+          V[j][p] = u - s * (v + u * tau);
+          V[j][q] = v + s * (u - v * tau);
+        }
+      }
+
+      // Smallest eigenvalue corresponds to best-fit ground surface normal
+      const evals = [A[0][0], A[1][1], A[2][2]];
+      let minIdx = 0;
+      if (evals[1] < evals[minIdx]) minIdx = 1;
+      if (evals[2] < evals[minIdx]) minIdx = 2;
+
+      let nx = V[0][minIdx];
+      let ny = V[1][minIdx];
+      let nz = V[2][minIdx];
+
+      // Ensure normal points upwards (nz > 0)
+      if (nz < 0) { nx = -nx; ny = -ny; nz = -nz; }
+      const len = Math.hypot(nx, ny, nz) || 1.0;
+      nx /= len; ny /= len; nz /= len;
+
+      const slopeDeg = Math.acos(Math.min(1.0, Math.abs(nz))) * (180 / Math.PI);
+      const roughness = Math.sqrt(Math.max(0, evals[minIdx]));
+
+      let status = 'NOMINAL';
+      if (slopeDeg > 28.0 || roughness > 0.05) status = 'HAZARD';
+      else if (slopeDeg > 18.0 || roughness > 0.025) status = 'CAUTION';
+
+      return {
+        normal: [nx, ny, nz],
+        slopeDeg: slopeDeg,
+        roughness: roughness,
+        status: status
+      };
+    }
+
+    // Physical Sweeping Dual-ToF LiDAR & 15-Sector Polar Histogram Perception
     function getSensorRays() {
       const numRays = 15;
       const fov = (110 * Math.PI) / 180;
-      const maxRange = 2.4; // Scaled up sensing radius for 20m map
+      const maxRange = 2.4;
       const rays = [];
       const wallLimit = ARENA_SIZE_M / 2.0 - 0.28;
 
+      // 1. Initialize 15 Navigation Sectors (from -55 deg to +55 deg)
       for (let i = 0; i < numRays; i++) {
-        // i=0 -> -55 deg (RIGHT side), i=7 -> 0 deg (CENTER), i=14 -> +55 deg (LEFT side)
         const angleOffset = -fov / 2 + (i / (numRays - 1)) * fov;
-        const rayAngle = rover.yaw + angleOffset;
-        let dist = maxRange;
-        let hitType = 'clear';
-        let hitObj = null;
-
-        for (let t = 0.10; t < maxRange; t += 0.035) {
-          const rx = rover.x + t * Math.cos(rayAngle);
-          const ry = rover.y + t * Math.sin(rayAngle);
-
-          // Arena wall proximity check
-          if (Math.abs(rx) > wallLimit || Math.abs(ry) > wallLimit) {
-            dist = t;
-            hitType = 'boulder';
-            break;
-          }
-
-          // Boulder hit (inflated only by rover half-width 0.10m so narrow gaps remain passable)
-          let hitBoulder = false;
-          for (const b of boulders) {
-            if (Math.hypot(rx - b.x, ry - b.y) < b.r + 0.10) {
-              dist = t;
-              hitType = 'boulder';
-              hitObj = b;
-              hitBoulder = true;
-              break;
-            }
-          }
-          if (hitBoulder) break;
-
-          // Crater steep slope evaluation (allows entering craters, detects only sheer rollover walls)
-          let inCraterHazard = false;
-          for (const c of craters) {
-            const dC = Math.hypot(rx - c.x, ry - c.y);
-            if (dC < c.r * 1.05) {
-              const tNorm = dC / c.r;
-              const bowlSlope = (tNorm < 1.0) ? (4.0 * c.d / c.r) * tNorm * Math.max(0, 1.0 - tNorm * tNorm) : 0;
-              const rimSlope = (c.rim_h / (0.24 * c.r)) * Math.exp(-Math.pow((tNorm - 1.0) / 0.24, 2));
-              const wallSlopeAngle = Math.atan(bowlSlope + rimSlope);
-              // Only mark as hazard if the crater wall exceeds safe driving grade (> 36 deg = 0.63 rad)
-              // Traversable craters (<= 36 deg) are completely open for rover entry and transit!
-              if (wallSlopeAngle > 0.63 && tNorm > 0.35 && tNorm < 1.02) {
-                dist = t;
-                hitType = 'crater';
-                hitObj = c;
-                inCraterHazard = true;
-                break;
-              }
-            }
-          }
-          if (inCraterHazard) break;
-        }
-
-        const rz = getElevation(rover.x + dist * Math.cos(rayAngle), rover.y + dist * Math.sin(rayAngle));
-
+        const rayAngle = normalizeAngle(rover.yaw + angleOffset);
         rays.push({
           index: i,
           angleOffset: angleOffset,
           angle: rayAngle,
-          dist: dist,
-          normDist: dist / maxRange,
-          type: hitType,
-          hitObj: hitObj,
-          rx: rover.x + dist * Math.cos(rayAngle),
-          ry: rover.y + dist * Math.sin(rayAngle),
-          rz: rz
+          dist: maxRange,
+          normDist: 1.0,
+          type: 'clear',
+          hitObj: null,
+          rx: rover.x + maxRange * Math.cos(rayAngle),
+          ry: rover.y + maxRange * Math.sin(rayAngle),
+          rz: getElevation(rover.x + maxRange * Math.cos(rayAngle), rover.y + maxRange * Math.sin(rayAngle)),
+          slopeDeg: 0,
+          normal: [0, 0, 1]
         });
       }
+
+      // Ensure 3D rover transformations are updated
+      if (roverGroup && roverParts.tofServoHead) {
+        roverGroup.updateMatrixWorld(true);
+        roverParts.tofServoHead.updateMatrixWorld(true);
+      }
+
+      // 2. Perform Physical Sweeping Dual-ToF LiDAR Raycasting
+      activeTofHits = [];
+      const tofLeftGrid = [];
+      const tofRightGrid = [];
+
+      // Dual ToF sensor modules mounted on sweeping triangular wedge
+      const sensors = [
+        { side: 1, cantYaw: 0.244, pitchDown: -0.209, posX: 0.018, posY: 0.012, posZ: 0.012, grid: tofLeftGrid },
+        { side: -1, cantYaw: -0.244, pitchDown: -0.209, posX: -0.018, posY: 0.012, posZ: 0.012, grid: tofRightGrid }
+      ];
+
+      sensors.forEach(sensor => {
+        // 8 columns of beams across sensor azimuth FOV (+-22.5 deg)
+        for (let c = 0; c < 8; c++) {
+          const azCol = (-0.392 + (c / 7.0) * 0.784); // +-22.5 deg in rad
+          // 2 elevation beam rows: lower row (steep down) & upper row (forward)
+          for (let r = 0; r < 2; r++) {
+            const elRow = (-0.08 + r * 0.14);
+            const totalAz = sensor.cantYaw + azCol;
+            const totalEl = sensor.pitchDown + elRow;
+
+            // Local unit vector in servo head coordinate frame
+            const vLocal = new THREE.Vector3(
+              Math.sin(totalAz) * Math.cos(totalEl),
+              Math.sin(totalEl),
+              Math.cos(totalAz) * Math.cos(totalEl)
+            );
+
+            const vOriginLocal = new THREE.Vector3(sensor.posX, sensor.posY, sensor.posZ);
+
+            let origSim, dirSim;
+            if (roverParts.tofServoHead) {
+              const worldDir = vLocal.clone().transformDirection(roverParts.tofServoHead.matrixWorld);
+              const worldOrig = vOriginLocal.clone().applyMatrix4(roverParts.tofServoHead.matrixWorld);
+              origSim = { x: worldOrig.x, y: -worldOrig.z, z: worldOrig.y };
+              dirSim = { x: worldDir.x, y: -worldDir.z, z: worldDir.y };
+            } else {
+              const yaw = rover.yaw;
+              origSim = { x: rover.x, y: rover.y, z: rover.z + 0.12 };
+              dirSim = { x: Math.cos(yaw + totalAz), y: Math.sin(yaw + totalAz), z: totalEl };
+            }
+
+            // Raymarch physical beam in 3D
+            const hit = castPhysical3DRay(origSim, dirSim, maxRange);
+            activeTofHits.push(hit);
+            if (r === 0) sensor.grid.push(hit.dist);
+
+            // Accumulate terrain hits in rolling PCA point cloud
+            if (hit.hit && hit.type !== 'boulder' && !hit.isWall && hit.dist >= 0.15 && hit.dist <= 1.8) {
+              recentTofCloud.push({ x: hit.rx, y: hit.ry, z: hit.rz, time: performance.now() });
+            }
+          }
+        }
+      });
+
+      tofHeatmapGrid.left = tofLeftGrid;
+      tofHeatmapGrid.right = tofRightGrid;
+
+      // Maintain rolling point cloud window (points within last 650ms, max 70)
+      const now = performance.now();
+      recentTofCloud = recentTofCloud.filter(p => now - p.time < 650);
+      if (recentTofCloud.length > 70) {
+        recentTofCloud.splice(0, recentTofCloud.length - 70);
+      }
+
+      // 3. Compute PCA Ground Plane & Traversability Telemetry
+      pcaPlaneData = computePCAOnPointCloud(recentTofCloud);
+
+      // 4. Map Detected Physical 3D Obstacles into 15 VFH+ Polar Histogram Sectors
+      activeTofHits.forEach(hit => {
+        if (!hit.hit && !hit.isDropoff) return;
+
+        const dx = hit.rx - rover.x;
+        const dy = hit.ry - rover.y;
+        const hitDist = Math.hypot(dx, dy);
+        if (hitDist > maxRange) return;
+
+        const hitAngle = Math.atan2(dy, dx);
+        const relAngle = normalizeAngle(hitAngle - rover.yaw);
+
+        // Check if within 110 deg front sector fan
+        if (Math.abs(relAngle) <= (fov / 2.0) + 0.08) {
+          const sectorFraction = (relAngle - (-fov / 2.0)) / fov;
+          const sIdx = Math.max(0, Math.min(numRays - 1, Math.round(sectorFraction * (numRays - 1))));
+
+          if (hit.type === 'boulder' || hit.isWall) {
+            if (hitDist < rays[sIdx].dist) {
+              rays[sIdx].dist = hitDist;
+              rays[sIdx].type = 'boulder';
+              rays[sIdx].hitObj = hit.hitObj || null;
+              rays[sIdx].slopeDeg = hit.slopeDeg;
+              rays[sIdx].normal = hit.normal;
+            }
+          } else if (hit.type === 'crater' || hit.isDropoff || hit.isSteepSlope) {
+            if (hitDist < rays[sIdx].dist) {
+              rays[sIdx].dist = hitDist;
+              rays[sIdx].type = 'crater';
+              rays[sIdx].hitObj = null;
+              rays[sIdx].slopeDeg = hit.slopeDeg;
+              rays[sIdx].normal = hit.normal;
+            }
+          } else if (hit.type === 'caution_slope') {
+            const effectiveDist = Math.max(0.35, hitDist * 0.88);
+            if (effectiveDist < rays[sIdx].dist) {
+              rays[sIdx].dist = effectiveDist;
+              rays[sIdx].type = 'crater';
+              rays[sIdx].slopeDeg = hit.slopeDeg;
+              rays[sIdx].normal = hit.normal;
+            }
+          }
+        }
+      });
+
+      // 5. Arena Perimeter Wall line-of-sight check for any remaining clear sectors
+      for (let i = 0; i < numRays; i++) {
+        const s = rays[i];
+        const cosA = Math.cos(s.angle);
+        const sinA = Math.sin(s.angle);
+        for (let t = 0.10; t < s.dist; t += 0.06) {
+          const rx = rover.x + t * cosA;
+          const ry = rover.y + t * sinA;
+          if (Math.abs(rx) > wallLimit || Math.abs(ry) > wallLimit) {
+            s.dist = t;
+            s.type = 'boulder';
+            break;
+          }
+        }
+
+        s.normDist = s.dist / maxRange;
+        s.rx = rover.x + s.dist * Math.cos(s.angle);
+        s.ry = rover.y + s.dist * Math.sin(s.angle);
+        s.rz = getElevation(s.rx, s.ry);
+        s.pcaNormal = pcaPlaneData.normal;
+      }
+
       currentSensorRays = rays;
       return rays;
+    }
+
+    // --- Tactical Stereo HUD Overlay & ToF LiDAR Avionics Instrumentation ---
+    function renderStereoHUDOverlay() {
+      const overlayCanvas = document.getElementById('pipOverlayCanvas');
+      if (!overlayCanvas) return;
+      const ctx = overlayCanvas.getContext('2d');
+      ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+      const rollDeg = rover.roll * (180 / Math.PI);
+      const pitchDeg = rover.pitch * (180 / Math.PI);
+
+      // Render HUD crosshairs on CAM-L (Port, cx=74) and CAM-R (Starboard, cx=227)
+      const viewports = [
+        { cx: 74, cy: 48, name: 'PORT' },
+        { cx: 227, cy: 48, name: 'STBD' }
+      ];
+
+      viewports.forEach(vp => {
+        ctx.save();
+        ctx.translate(vp.cx, vp.cy);
+
+        // Artificial Horizon Line (tilts with vehicle roll, translates with pitch)
+        ctx.rotate(-rover.roll);
+        const pitchShift = Math.max(-28, Math.min(28, rover.pitch * 55));
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(-45, pitchShift);
+        ctx.lineTo(-12, pitchShift);
+        ctx.moveTo(12, pitchShift);
+        ctx.lineTo(45, pitchShift);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Pitch ladder ticks
+        for (const pTick of [-14, 14]) {
+          const yTick = pitchShift + pTick * 1.4;
+          ctx.beginPath();
+          ctx.moveTo(-8, yTick);
+          ctx.lineTo(-3, yTick);
+          ctx.moveTo(3, yTick);
+          ctx.lineTo(8, yTick);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+
+        // Center Aiming Reticle
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(vp.cx, vp.cy, 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(vp.cx - 9, vp.cy);
+        ctx.lineTo(vp.cx - 3, vp.cy);
+        ctx.moveTo(vp.cx + 3, vp.cy);
+        ctx.lineTo(vp.cx + 9, vp.cy);
+        ctx.moveTo(vp.cx, vp.cy - 9);
+        ctx.lineTo(vp.cx, vp.cy - 3);
+        ctx.moveTo(vp.cx, vp.cy + 3);
+        ctx.lineTo(vp.cx, vp.cy + 9);
+        ctx.stroke();
+      });
+
+      // Stereo Baseline Watermark
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+      ctx.font = '8px monospace';
+      ctx.fillText(`BASELINE: 76mm | ROLL: ${rollDeg > 0 ? '+' : ''}${rollDeg.toFixed(1)}° | PITCH: ${pitchDeg > 0 ? '+' : ''}${pitchDeg.toFixed(1)}°`, 8, overlayCanvas.height - 4);
+    }
+
+    function renderTofTelemetry() {
+      // Update DOM Text Badges
+      const servoAngleEl = document.getElementById('tof-servo-angle');
+      if (servoAngleEl && roverParts.tofServoHead) {
+        const deg = (roverParts.tofServoHead.rotation.y * 180 / Math.PI).toFixed(1);
+        servoAngleEl.textContent = `SWEEP: ${deg > 0 ? '+' : ''}${deg}°`;
+      }
+
+      const pcaSlopeEl = document.getElementById('pca-slope-val');
+      if (pcaSlopeEl) {
+        const deg = pcaPlaneData.slopeDeg.toFixed(1);
+        pcaSlopeEl.textContent = `${deg}° (${pcaPlaneData.status})`;
+        pcaSlopeEl.className = pcaPlaneData.status === 'NOMINAL' ? 'text-emerald-400 font-bold ml-1' : (pcaPlaneData.status === 'CAUTION' ? 'text-amber-400 font-bold ml-1' : 'text-rose-400 font-bold ml-1');
+      }
+
+      const pcaNormalEl = document.getElementById('pca-normal-val');
+      if (pcaNormalEl) {
+        pcaNormalEl.textContent = `[${pcaPlaneData.normal[0].toFixed(2)}, ${pcaPlaneData.normal[1].toFixed(2)}, ${pcaPlaneData.normal[2].toFixed(2)}]`;
+      }
+
+      const pcaRoughEl = document.getElementById('pca-roughness-val');
+      if (pcaRoughEl) {
+        pcaRoughEl.textContent = `${(pcaPlaneData.roughness * 100).toFixed(1)}cm`;
+      }
+
+      // Render ToF Heatmap Grid (8 zones left + 8 zones right)
+      const hCanvas = document.getElementById('tofHeatmapCanvas');
+      if (!hCanvas) return;
+      const ctx = hCanvas.getContext('2d');
+      ctx.clearRect(0, 0, hCanvas.width, hCanvas.height);
+
+      const cellW = hCanvas.width / 16.0;
+      const cellH = hCanvas.height;
+
+      const allDists = [...(tofHeatmapGrid.left || []), ...(tofHeatmapGrid.right || [])];
+      for (let i = 0; i < 16; i++) {
+        const d = allDists[i] !== undefined ? allDists[i] : 2.4;
+        let color = '#10b981'; // Green (Safe)
+        if (d < 0.45) color = '#ef4444'; // Red (Hazard)
+        else if (d < 0.95) color = '#f59e0b'; // Amber (Caution)
+        else if (d < 1.8) color = '#06b6d4'; // Cyan (Mid-range)
+
+        ctx.fillStyle = color;
+        ctx.fillRect(i * cellW + 0.5, 2, cellW - 1, cellH - 4);
+      }
+
+      // Center divider between Left and Right ToF
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(hCanvas.width / 2 - 1, 0, 2, cellH);
+
+      // Sweep indicator mark
+      if (roverParts.tofServoHead) {
+        const sweepNorm = (roverParts.tofServoHead.rotation.y / 0.38 + 1.0) * 0.5;
+        const curX = Math.max(2, Math.min(hCanvas.width - 2, sweepNorm * hCanvas.width));
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(curX, 2, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     // --- Hybrid VFH+ Polar Histogram + Tangential Vortex Field + RBF Kernel Continual Learning ---
@@ -4159,9 +4816,11 @@
 
         const wheelCoords = {
           fl: { z: zFL, phase: 0.0 },
-          fr: { z: zFR, phase: 1.7 },
-          rl: { z: zRL, phase: 3.1 },
-          rr: { z: zRR, phase: 4.8 }
+          ml: { z: (zFL + zRL) * 0.5, phase: 1.1 },
+          rl: { z: zRL, phase: 2.2 },
+          fr: { z: zFR, phase: 3.3 },
+          mr: { z: (zFR + zRR) * 0.5, phase: 4.4 },
+          rr: { z: zRR, phase: 5.5 }
         };
 
         const wheelSpeedMag = Math.max(Math.abs(vL), Math.abs(vR));
@@ -4223,21 +4882,18 @@
         const dThetaL = (vSpinL / wheelRadius) * dt;
         const dThetaR = (vSpinR / wheelRadius) * dt;
 
-        suspArms.fl.wheel.rotation.x += dThetaL;
-        suspArms.rl.wheel.rotation.x += dThetaL;
-        suspArms.fr.wheel.rotation.x += dThetaR;
-        suspArms.rr.wheel.rotation.x += dThetaR;
+        if (suspArms.fl) suspArms.fl.wheel.rotation.x += dThetaL;
+        if (suspArms.ml) suspArms.ml.wheel.rotation.x += dThetaL;
+        if (suspArms.rl) suspArms.rl.wheel.rotation.x += dThetaL;
+        if (suspArms.fr) suspArms.fr.wheel.rotation.x += dThetaR;
+        if (suspArms.mr) suspArms.mr.wheel.rotation.x += dThetaR;
+        if (suspArms.rr) suspArms.rr.wheel.rotation.x += dThetaR;
       }
 
-      // Animate Active Pan-Tilt Stereo Camera Mast, Earth-Tracking Dish Antenna & Telemetry Beacon
-      if (roverParts.mastHead) {
-        const targetBearing = normalizeAngle(Math.atan2(goal.y - rover.y, goal.x - rover.x) - rover.yaw);
-        const turnLook = THREE.MathUtils.clamp(rover.omega * 0.28 + targetBearing * 0.22, -0.52, 0.52);
-        const scanSweep = 0.06 * Math.sin(currentTime * 0.0028);
-        const targetPanY = turnLook + scanSweep;
-        roverParts.mastHead.rotation.y += (targetPanY - roverParts.mastHead.rotation.y) * Math.min(1.0, dt * 8.0);
-        const targetTiltX = THREE.MathUtils.clamp(rover.pitch * 0.45 + 0.04, -0.20, 0.25);
-        roverParts.mastHead.rotation.x += (targetTiltX - roverParts.mastHead.rotation.x) * Math.min(1.0, dt * 8.0);
+      // Animate Central Servo + Triangular Dual-ToF Sensor Scanning Sweep
+      if (roverParts.tofServoHead) {
+        const sweepAngle = Math.sin(currentTime * 0.0035) * 0.32; // Active ±18° horizontal obstacle scan
+        roverParts.tofServoHead.rotation.y = sweepAngle;
       }
       if (roverParts.dishHead) {
         // Keep high-gain S-band dish continuously oriented toward Earth in the sky
@@ -4643,11 +5299,28 @@
         roverGroup.rotateZ(rover.roll);
 
         roverGroup.updateMatrixWorld(true);
+
+        // Update Dual Stereo Navigation Cameras (CAM-L Port & CAM-R Starboard)
+        if (stereoLeftAnchor && stereoRightAnchor) {
+          stereoLeftAnchor.getWorldPosition(stereoLeftWorldPos);
+          stereoLeftTarget.getWorldPosition(stereoLeftTargetPos);
+          if (stereoCamLeft) {
+            stereoCamLeft.position.copy(stereoLeftWorldPos);
+            stereoCamLeft.lookAt(stereoLeftTargetPos);
+          }
+
+          stereoRightAnchor.getWorldPosition(stereoRightWorldPos);
+          stereoRightTarget.getWorldPosition(stereoRightTargetPos);
+          if (stereoCamRight) {
+            stereoCamRight.position.copy(stereoRightWorldPos);
+            stereoCamRight.lookAt(stereoRightTargetPos);
+          }
+        }
+
         if (mastCameraAnchor && mastTarget) {
           mastCameraAnchor.getWorldPosition(mastWorldPos);
           mastTarget.getWorldPosition(mastTargetPos);
-
-          if (mastCamera) {
+          if (mastCamera && !stereoCamLeft) {
             mastCamera.position.copy(mastWorldPos);
             mastCamera.lookAt(mastTargetPos);
           }
@@ -4668,31 +5341,64 @@
         });
       }
 
-      if (showRays && rover.alive) {
+      if (rover.alive) {
         const rays = getSensorRays();
 
-        for (let i = 0; i < 15; i++) {
-          const r = rays[i];
-          const line = rayLines[i];
-          line.visible = true;
+        // 1. Update 3D Point Cloud for Active ToF LiDAR Laser Returns
+        if (tofPointCloud && activeTofHits.length > 0) {
+          const posAttr = tofPointCloud.geometry.attributes.position;
+          const colAttr = tofPointCloud.geometry.attributes.color;
+          const pCount = Math.min(maxTofPoints, activeTofHits.length);
 
-          // Anchor rayfan to authentic 3D mast lens position
-          const pts = [
-            mastWorldPos,
-            new THREE.Vector3(r.rx, r.rz + 0.015, -r.ry)
-          ];
-          line.geometry.setFromPoints(pts);
+          for (let i = 0; i < pCount; i++) {
+            const h = activeTofHits[i];
+            posAttr.setXYZ(i, h.rx, h.rz + 0.015, -h.ry);
 
-          if (r.type === 'boulder') {
-            line.material.color.setHex(0xef4444);
-          } else if (r.type === 'crater') {
-            line.material.color.setHex(0x38bdf8);
-          } else {
-            line.material.color.setHex(0x10b981);
+            if (h.type === 'boulder' || h.isWall) {
+              colAttr.setXYZ(i, 0.94, 0.27, 0.27); // Crimson hazard
+            } else if (h.type === 'crater' || h.isDropoff || h.isSteepSlope) {
+              colAttr.setXYZ(i, 0.22, 0.74, 0.97); // Cyan crater/drop-off
+            } else if (h.type === 'caution_slope') {
+              colAttr.setXYZ(i, 0.96, 0.62, 0.07); // Amber caution slope
+            } else {
+              colAttr.setXYZ(i, 0.06, 0.72, 0.51); // Emerald safe terrain
+            }
           }
+          tofPointCloud.geometry.setDrawRange(0, pCount);
+          posAttr.needsUpdate = true;
+          colAttr.needsUpdate = true;
+          tofPointCloud.visible = showRays;
+        }
+
+        // 2. Update 15-Sector Navigation Ray Lines (Connected to Sweeping Turret)
+        if (showRays) {
+          const turretPos = mastWorldPos;
+          for (let i = 0; i < 15; i++) {
+            const r = rays[i];
+            const line = rayLines[i];
+            if (line) {
+              line.visible = true;
+              const pts = [
+                turretPos,
+                new THREE.Vector3(r.rx, r.rz + 0.015, -r.ry)
+              ];
+              line.geometry.setFromPoints(pts);
+
+              if (r.type === 'boulder') {
+                line.material.color.setHex(0xef4444);
+              } else if (r.type === 'crater') {
+                line.material.color.setHex(0x38bdf8);
+              } else {
+                line.material.color.setHex(0x10b981);
+              }
+            }
+          }
+        } else {
+          rayLines.forEach(l => l.visible = false);
         }
       } else {
         rayLines.forEach(l => l.visible = false);
+        if (tofPointCloud) tofPointCloud.visible = false;
       }
 
       if (activeCameraMode === 'chase' && roverGroup) {
@@ -4871,8 +5577,28 @@
       // Render main 3D viewport
       renderer.render(scene, camera);
 
-      // Render dedicated real-time hardware Picture-in-Picture mast camera feed
-      if (pipRenderer && mastCamera) {
+      // Render dedicated real-time hardware Dual Stereo Camera Viewports (CAM-L Port & CAM-R Starboard)
+      if (pipRenderer && stereoCamLeft && stereoCamRight) {
+        pipRenderer.clear();
+
+        // Left Eye Viewport: CAM-L (Port side)
+        pipRenderer.setViewport(0, 0, 149, 96);
+        pipRenderer.setScissor(0, 0, 149, 96);
+        pipRenderer.setScissorTest(true);
+        pipRenderer.render(scene, stereoCamLeft);
+
+        // Right Eye Viewport: CAM-R (Starboard side)
+        pipRenderer.setViewport(153, 0, 149, 96);
+        pipRenderer.setScissor(153, 0, 149, 96);
+        pipRenderer.setScissorTest(true);
+        pipRenderer.render(scene, stereoCamRight);
+
+        pipRenderer.setScissorTest(false);
+
+        // Render tactical HUD overlays on overlay canvas & ToF telemetry
+        renderStereoHUDOverlay();
+        renderTofTelemetry();
+      } else if (pipRenderer && mastCamera) {
         pipRenderer.render(scene, mastCamera);
       }
     }
