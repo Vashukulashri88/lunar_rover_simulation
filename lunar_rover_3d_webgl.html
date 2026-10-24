@@ -24,17 +24,17 @@
       <div class="flex items-center gap-2">
         <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
         <h1 class="text-lg font-bold tracking-wide text-slate-100 uppercase">
-          3D Autonomous Lunar Rover Simulator — Expansive 20m Expedition Map
+          3D Autonomous Lunar Rover Simulator — Nakshatra Physical Arena
         </h1>
         <span class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded font-mono">
-          20m × 20m Arena (400 m²)
+          Nakshatra Hackathon Map (1:1 Physical Layout)
         </span>
-        <span class="text-xs bg-purple-950 text-purple-300 border border-purple-800 px-2 py-0.5 rounded font-mono">
-          32 Craters • 55 Boulders • 16 Mountain Ridges • LLM Co-Pilot
+        <span class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2 py-0.5 rounded font-mono">
+          NAKSHATRA Ramp • Ring Crater • 2 Basalt Gravel Beds • Brown Sand Strip • 48 Slalom Cobbles
         </span>
       </div>
       <p class="text-xs text-slate-400 mt-0.5">
-        Multi-Octave Lunar Dunes • 1.62 m/s² Gravity • 30×21cm Envelope • 15-Beam 3D Laser Fan • Tactical Mini-Map
+        Authentic Physical Arena Replica • Dual Stereo Cams (B=76mm) • Sweeping Dual-ToF LiDAR • PCA Traversability
       </p>
     </div>
 
@@ -704,115 +704,271 @@
       return t * t * (3 - 2 * t);
     }
 
-    // Soil softness [0 = compacted highland regolith, 1 = loose fine sand / fresh crater fill]
+    // =========================================================================
+    // NAKSHATRA HACKATHON PHYSICAL ARENA 1:1 ZONE & TOPOGRAPHY ENGINE
+    // =========================================================================
+    function getNakshatraZoneWeights(x, y) {
+      const edgeNoise = 0.24 * (fbm(x * 0.9 + 5.1, y * 0.9 - 3.7, 2) - 0.5);
+
+      // 1. Top (North) Wide Brown Fine Sand & Soil Strip: x in [-5.8, +2.6], y in [+2.7, +7.8]
+      const sandX = smoothstep(-6.0, -5.5, x + edgeNoise) * (1.0 - smoothstep(2.3, 2.8, x + edgeNoise));
+      const sandY = smoothstep(2.5, 3.0, y + edgeNoise) * (1.0 - smoothstep(7.5, 8.1, y + edgeNoise));
+      const topBrownSand = sandX * sandY;
+
+      // 2. Far-Left (West) Cardboard Base & Dark Blue-Grey Basalt Gravel Strip: x in [-9.4, -5.5], y in [-4.0, +6.8]
+      const cardX = smoothstep(-9.6, -9.2, x) * (1.0 - smoothstep(-5.6, -5.2, x + edgeNoise * 0.5));
+      const cardY = smoothstep(-4.3, -3.8, y) * (1.0 - smoothstep(6.5, 7.0, y));
+      const leftCardboard = cardX * cardY;
+
+      const leftGravX = smoothstep(-9.2, -8.8, x + edgeNoise) * (1.0 - smoothstep(-6.0, -5.6, x + edgeNoise));
+      const leftGravY = smoothstep(-3.8, -3.2, y + edgeNoise) * (1.0 - smoothstep(6.1, 6.6, y + edgeNoise));
+      const leftBasaltGravel = leftGravX * leftGravY;
+
+      // 3. Middle-Right (East) Dark Blue-Grey Basalt Gravel Patch (below NAKSHATRA Ramp): x in [+1.8, +6.2], y in [-4.5, +0.9]
+      // Includes the characteristic V-shaped lower-left notch seen in the physical arena photos
+      const notchIndent = 0.75 * Math.exp(-Math.pow((y + 1.8) / 0.85, 2));
+      const rightMinX = 1.85 + notchIndent;
+      const rightGravX = smoothstep(rightMinX - 0.25, rightMinX + 0.20, x + edgeNoise) * (1.0 - smoothstep(5.9, 6.4, x + edgeNoise));
+      const rightGravY = smoothstep(-4.6, -4.1, y + edgeNoise) * (1.0 - smoothstep(0.6, 1.1, y + edgeNoise));
+      const rightBasaltGravel = rightGravX * rightGravY;
+
+      // 4. Foreground (South) Giant Sculpted Ring Crater & Coarse Tan Pebble Blanket
+      // Main Ring Crater centered at (-1.8, -5.5), r = 2.15m
+      const dCrater = Math.hypot(x - (-1.8), y - (-5.5));
+      const craterNorm = dCrater / 2.15;
+      const craterRimWall = Math.exp(-Math.pow((craterNorm - 0.96) / 0.16, 2));
+      const craterFloor = smoothstep(0.88, 0.72, craterNorm);
+      // Exposed white newspaper patch in the very center of the ring crater floor
+      const craterCenterPaper = smoothstep(0.36, 0.20, Math.hypot((x + 1.75) * 1.2, (y + 5.55) * 0.85));
+
+      // Coarse Tan Gravel & Pebble Ejecta Blanket spreading around crater & Eastward: x in [-4.4, +3.2], y in [-8.8, -2.1]
+      const tanGravX = smoothstep(-4.6, -3.9, x + edgeNoise * 1.2) * (1.0 - smoothstep(2.6, 3.3, x + edgeNoise * 1.2));
+      const tanGravY = smoothstep(-9.0, -8.3, y + edgeNoise) * (1.0 - smoothstep(-2.4, -1.8, y + edgeNoise * 1.2));
+      const bottomTanGravel = Math.max(tanGravX * tanGravY, smoothstep(1.45, 1.02, craterNorm));
+
+      // 5. Central Newspaper Corridor Sheet Mask
+      const newsX = smoothstep(-6.4, -5.8, x) * (1.0 - smoothstep(6.2, 6.8, x));
+      const newsY = smoothstep(-4.8, -4.2, y) * (1.0 - smoothstep(2.5, 3.0, y));
+      const newspaperCorridor = newsX * newsY;
+
+      return {
+        topBrownSand,
+        leftCardboard,
+        leftBasaltGravel,
+        rightBasaltGravel,
+        craterNorm,
+        craterRimWall,
+        craterFloor,
+        craterCenterPaper,
+        bottomTanGravel,
+        newspaperCorridor
+      };
+    }
+
+    // Soil softness [0 = firm newspaper/tarp floor, 1 = loose brown sand / thick gravel]
     function getSoilSoftness(x, y) {
-      let s = 0.42 + 0.65 * fbm(x * 0.12 + 40.0, y * 0.12 - 17.0, 3);
-      for (const c of craters) {
-        const t = Math.hypot(x - c.x, y - c.y) / c.r;
-        if (t < 1.20) s += 0.42 * (1.20 - t); // deep loose ejecta & dust fill inside bowls
-      }
+      const z = getNakshatraZoneWeights(x, y);
+      let s = 0.15; // Firm newspaper/tarp base
+      s = Math.max(s, z.topBrownSand * 0.82);
+      s = Math.max(s, (z.leftBasaltGravel + z.rightBasaltGravel) * 0.58);
+      s = Math.max(s, z.bottomTanGravel * 0.64);
+      s = Math.max(s, z.craterRimWall * 0.88);
       return Math.max(0, Math.min(1, s));
     }
 
-    // Sand field mask (where wind-rippled dunes & deep dust sinks appear)
+    // Sand field mask (used for fine sand ripples in the Top Brown Sand Strip)
     function getSandMask(x, y) {
-      const base = 0.42 + 0.68 * fbm(x * 0.12 + 40.0, y * 0.12 - 17.0, 3);
-      return smoothstep(0.52, 0.82, base);
+      return getNakshatraZoneWeights(x, y).topBrownSand;
     }
 
     function getElevation(x, y) {
-      // 1. Macro undulating highlands (scaled for 20m expanse)
-      let z = 0.16 * Math.sin(0.24 * x + 0.3) + 0.16 * Math.cos(0.22 * y + 0.5);
+      const zw = getNakshatraZoneWeights(x, y);
 
-      // 2. Meso-scale fBm regolith relief (rolling valleys, swales, and terraces)
-      z += 0.12 * fbm(x * 0.18, y * 0.18, 4);
+      // 1. Flat laboratory arena floor with subtle sheet undulation
+      let z = 0.004 * Math.sin(0.35 * x) * Math.cos(0.35 * y);
 
-      // 3. Discrete hills & elongated uphill mountain ridges (anisotropic Gaussians)
+      // 2. Top Brown Fine Sand & Soil Bed (+4.5cm to +8.5cm raised bed with ripples)
+      if (zw.topBrownSand > 0.01) {
+        const sandRipple = 0.012 * Math.sin(x * 4.5 + y * 2.2) + 0.028 * fbm(x * 0.7 + 3.0, y * 0.7 - 2.0, 3);
+        z += zw.topBrownSand * (0.048 + sandRipple);
+      }
+
+      // 3. Left Cardboard & Dark Blue-Grey Basalt Gravel Strip (+4.2cm gravel bed)
+      if (zw.leftCardboard > 0.01) {
+        z += zw.leftCardboard * 0.008;
+      }
+      if (zw.leftBasaltGravel > 0.01) {
+        const gravRough = 0.014 * (vnoise(x * 14.0, y * 14.0) - 0.5);
+        z += zw.leftBasaltGravel * (0.036 + gravRough);
+      }
+
+      // 4. Right Dark Blue-Grey Basalt Gravel Patch (+4.0cm crushed stone bed)
+      if (zw.rightBasaltGravel > 0.01) {
+        const gravRough = 0.014 * (vnoise(x * 14.0 + 7.0, y * 14.0 - 4.0) - 0.5);
+        z += zw.rightBasaltGravel * (0.036 + gravRough);
+      }
+
+      // 5. Bottom Coarse Tan Pebble Blanket (+3.8cm mounded river gravel)
+      if (zw.bottomTanGravel > 0.01) {
+        const pebRough = 0.016 * (vnoise(x * 11.0 - 3.0, y * 11.0 + 5.0) - 0.5);
+        z += zw.bottomTanGravel * (0.034 + pebRough) * (1.0 - zw.craterFloor * 0.75);
+      }
+
+      // 6. Foreground Giant Sculpted Ring Crater & Secondary Depressions
+      for (const c of craters) {
+        const d = Math.hypot(x - c.x, y - c.y);
+        const t = d / c.r;
+        if (t > 2.5) continue;
+        if (c.isNakshatraMainCrater) {
+          // High, thick sculpted brown soil ring wall with flat gravelly inner floor
+          const ringWall = c.rim_h * Math.exp(-Math.pow((t - 0.96) / 0.16, 2));
+          const innerBowl = (t < 0.85) ? -0.022 * (1.0 - Math.pow(t / 0.85, 2)) : 0;
+          z += ringWall + innerBowl;
+        } else {
+          if (t < 1.0) z -= c.d * Math.pow(1 - t * t, 2);
+          const rimT = (t - 1.0) / 0.24;
+          z += c.rim_h * Math.exp(-rimT * rimT);
+        }
+      }
+
+      // 7. Gentle micro-hills inside sand/gravel beds
       for (const h of hills) {
         const dx = x - h.x, dy = y - h.y;
         const c = Math.cos(h.rot), s = Math.sin(h.rot);
         const u = (dx * c + dy * s) / h.sx;
         const v = (-dx * s + dy * c) / h.sy;
         const q = u * u + v * v;
-        if (q < 12) z += h.h * Math.exp(-0.5 * q);
+        if (q < 9) z += h.h * Math.exp(-0.5 * q);
       }
 
-      // 4. Sand fields: fine ripples + transverse dunes
-      const sand = getSandMask(x, y);
-      if (sand > 0.01) {
-        const warp = 1.8 * vnoise(x * 0.85, y * 0.85);
-        z += sand * (0.008 * Math.sin((x * 0.72 + y * 0.65) * 14.0 + warp) + 0.038 * fbm(x * 0.6 + 7.0, y * 0.6 + 3.0, 2));
-      }
-
-      // 5. Micro-roughness (regolith clods & micro-pitting)
-      z += 0.005 * (vnoise(x * 6.5, y * 6.5) - 0.5);
-
-      // 6. Craters: deep parabolic bowl + raised Gaussian rim + decaying ejecta blanket
-      for (const c of craters) {
-        const d = Math.hypot(x - c.x, y - c.y);
-        const t = d / c.r;
-        if (t > 3.2) continue;
-        if (t < 1) z -= c.d * Math.pow(1 - t * t, 2);
-        const rimT = (t - 1.0) / 0.24;
-        z += c.rim_h * Math.exp(-rimT * rimT);
-        if (t > 1.0) z += c.rim_h * 0.32 / (t * t * t);
-      }
       return z;
     }
 
-    // Generates 16 hills & steep uphill ridges for the 20m map
+    // Generates subtle sand & gravel mounds matching the Nakshatra Physical Arena
     function generateHills(rng) {
-      const out = [];
-      let guard = 0;
-      while (out.length < 16 && guard++ < 300) {
-        const hx = (rng() - 0.5) * 18.0;
-        const hy = (rng() - 0.5) * 18.0;
-        if (Math.hypot(hx - startPos.x, hy - startPos.y) < 2.2) continue;
-        if (Math.hypot(hx - goal.x, hy - goal.y) < 2.2) continue;
-        const isRidge = out.length < 5; // First 5 are elongated uphill mountain ridges
-        out.push({
-          x: hx, y: hy,
-          h: isRidge ? 0.42 + rng() * 0.38 : 0.22 + rng() * 0.44,
-          sx: isRidge ? 4.8 + rng() * 2.8 : 1.4 + rng() * 1.8,
-          sy: isRidge ? 1.5 + rng() * 0.6 : 1.2 + rng() * 1.2,
-          rot: rng() * Math.PI
-        });
-      }
-      return out;
+      return [
+        // Undulating mounds along the Top Brown Sand Strip
+        { x: -4.2, y: 5.5, h: 0.06, sx: 1.8, sy: 1.1, rot: 0.1 },
+        { x: -1.5, y: 5.3, h: 0.07, sx: 2.0, sy: 1.2, rot: -0.15 },
+        { x: 1.2, y: 5.2, h: 0.06, sx: 1.6, sy: 1.1, rot: 0.08 },
+        // Coarse gravel mounding to the East of the Giant Ring Crater
+        { x: 0.6, y: -5.4, h: 0.08, sx: 1.9, sy: 1.6, rot: 0.3 },
+        // Slight crown on the Left & Right Dark Basalt Gravel beds
+        { x: -7.4, y: 1.2, h: 0.04, sx: 1.2, sy: 3.5, rot: Math.PI / 2 },
+        { x: 4.0, y: -1.8, h: 0.04, sx: 1.6, sy: 1.8, rot: 0.0 }
+      ];
     }
 
-    // Terrain albedo: maria/highland patches, dark crater floors, bright rims & ray ejecta, sand tint
+    // Authentic Albedo Coloring matching the 4 Nakshatra Physical Arena Photos
     function getTerrainColor(x, y, slope) {
-      let v = 0.50 + 0.07 * fbm(x * 0.15 - 11.0, y * 0.15 + 5.0, 3);   // highland vs mare patches
-      v += 0.035 * (vnoise(x * 4.0, y * 4.0) - 0.5);                   // fine mottling
-      const sand = getSandMask(x, y);
-      v += 0.04 * sand;
-      for (let i = 0; i < craters.length; i++) {
-        const c = craters[i];
-        const dx = x - c.x, dy = y - c.y;
-        const t = Math.hypot(dx, dy) / c.r;
-        if (t > 3.6) continue;
-        if (t < 1) v -= 0.11 * (1 - t);
-        v += 0.10 * Math.exp(-Math.pow((t - 1.0) / 0.32, 2));
-        if (t > 1.0 && t < 3.6) {
-          const ang = Math.atan2(dy, dx);
-          const nRays = 5 + (i % 4) * 2;
-          const ray = Math.pow(Math.abs(Math.sin(ang * nRays * 0.5 + i * 1.7)), 10);
-          v += 0.07 * ray * (1 - (t - 1.0) / 2.6);
-        }
+      // Dark indoor hackathon hall floor outside the 20m x 20m physical testbed
+      if (Math.abs(x) > 10.02 || Math.abs(y) > 10.02) {
+        const gOut = (vnoise(x * 4.0, y * 4.0) - 0.5) * 0.02;
+        return [0.06 + gOut, 0.08 + gOut, 0.11 + gOut];
       }
-      v += 0.10 * slope; // freshly exposed steep faces are brighter
-      v = Math.max(0.18, Math.min(0.85, v));
-      return [v * (1.0 + 0.03 * sand), v * (0.98 + 0.01 * sand), v * (0.94 - 0.02 * sand)];
+
+      const zw = getNakshatraZoneWeights(x, y);
+      const grain = (vnoise(x * 12.0, y * 12.0) - 0.5);
+
+      // Base White Tarp / Sheet Color (Clean matte off-white around upper-right & outer borders)
+      let r = 0.72 + grain * 0.03;
+      let g = 0.72 + grain * 0.03;
+      let b = 0.70 + grain * 0.03;
+
+      // Central Newspaper Sheet Corridor (Off-white newsprint with page seams & column mottling)
+      if (zw.newspaperCorridor > 0.01) {
+        const pageSeamX = Math.pow(Math.abs(Math.cos(x * 2.8)), 28);
+        const pageSeamY = Math.pow(Math.abs(Math.cos(y * 3.4)), 28);
+        const seam = -Math.max(pageSeamX, pageSeamY) * 0.11;
+        const printPatch = fbm(x * 3.2 + 1.7, y * 3.2 - 2.3, 3);
+        // Occasional colorful magazine/newspaper ad patches (like the purple/blue/amber ads in the photos!)
+        let nr = 0.71 - 0.12 * printPatch + seam + grain * 0.04;
+        let ng = 0.70 - 0.12 * printPatch + seam + grain * 0.04;
+        let nb = 0.67 - 0.10 * printPatch + seam + grain * 0.04;
+
+        // Subtle magazine color accents matching the middle newspaper sheets
+        const mag1 = Math.exp(-Math.pow((x + 1.8) / 0.75, 2) - Math.pow((y + 0.5) / 0.55, 2)); // Blue/gold magazine patch
+        const mag2 = Math.exp(-Math.pow((x + 0.1) / 0.70, 2) - Math.pow((y - 1.1) / 0.65, 2)); // Dark sepia/purple magazine page
+        nr = nr * (1 - 0.35 * mag1) + 0.25 * mag1;
+        ng = ng * (1 - 0.30 * mag1) + 0.32 * mag1;
+        nb = nb * (1 - 0.10 * mag1) + 0.52 * mag1;
+
+        nr = nr * (1 - 0.42 * mag2) + 0.28 * mag2;
+        ng = ng * (1 - 0.48 * mag2) + 0.20 * mag2;
+        nb = nb * (1 - 0.38 * mag2) + 0.30 * mag2;
+
+        const w = zw.newspaperCorridor;
+        r = r * (1 - w) + nr * w;
+        g = g * (1 - w) + ng * w;
+        b = b * (1 - w) + nb * w;
+      }
+
+      // Left Cardboard Under-Sheet (Warm corrugated cardboard brown border)
+      if (zw.leftCardboard > 0.01) {
+        const w = zw.leftCardboard;
+        const cr = 0.66 + grain * 0.04, cg = 0.50 + grain * 0.03, cb = 0.33 + grain * 0.02;
+        r = r * (1 - w) + cr * w;
+        g = g * (1 - w) + cg * w;
+        b = b * (1 - w) + cb * w;
+      }
+
+      // Top (North) Wide Brown Fine Sand & Soil Bed
+      if (zw.topBrownSand > 0.01) {
+        const w = zw.topBrownSand;
+        const mottle = 0.05 * fbm(x * 2.5, y * 2.5, 2) + grain * 0.05;
+        const sr = 0.54 + mottle, sg = 0.38 + mottle * 0.75, sb = 0.25 + mottle * 0.5;
+        r = r * (1 - w) + sr * w;
+        g = g * (1 - w) + sg * w;
+        b = b * (1 - w) + sb * w;
+      }
+
+      // Left & Right Dark Blue-Grey Crushed Basalt Gravel Beds
+      const basaltW = Math.max(zw.leftBasaltGravel, zw.rightBasaltGravel);
+      if (basaltW > 0.01) {
+        const chip = 0.06 * (vnoise(x * 22.0, y * 22.0) - 0.5);
+        const br = 0.22 + chip, bg = 0.26 + chip, bb = 0.31 + chip * 1.1;
+        r = r * (1 - basaltW) + br * basaltW;
+        g = g * (1 - basaltW) + bg * basaltW;
+        b = b * (1 - basaltW) + bb * basaltW;
+      }
+
+      // Foreground (South) Coarse Tan Pebble Blanket & Giant Sculpted Ring Crater
+      if (zw.bottomTanGravel > 0.01) {
+        const w = zw.bottomTanGravel;
+        const peb = 0.07 * (vnoise(x * 16.0, y * 16.0) - 0.5);
+        let tr = 0.57 + peb, tg = 0.47 + peb * 0.85, tb = 0.35 + peb * 0.65;
+        // Darker compacted moist brown soil on the sculpted ring crater wall
+        const rimW = Math.min(1.0, zw.craterRimWall * 1.15);
+        tr = tr * (1 - rimW) + (0.45 + peb * 0.5) * rimW;
+        tg = tg * (1 - rimW) + (0.33 + peb * 0.4) * rimW;
+        tb = tb * (1 - rimW) + (0.22 + peb * 0.3) * rimW;
+        // Exposed white newspaper patch in the center of the crater bowl
+        if (zw.craterCenterPaper > 0.01) {
+          const pw = zw.craterCenterPaper * 0.85;
+          tr = tr * (1 - pw) + 0.80 * pw;
+          tg = tg * (1 - pw) + 0.79 * pw;
+          tb = tb * (1 - pw) + 0.75 * pw;
+        }
+        r = r * (1 - w) + tr * w;
+        g = g * (1 - w) + tg * w;
+        b = b * (1 - w) + tb * w;
+      }
+
+      const slopeHighlight = 0.06 * slope;
+      return [
+        Math.max(0.10, Math.min(0.95, r + slopeHighlight)),
+        Math.max(0.10, Math.min(0.95, g + slopeHighlight)),
+        Math.max(0.10, Math.min(0.95, b + slopeHighlight))
+      ];
     }
 
     // --- Continual Teacher-Student, Multi-Attempt & 2000-Win Marathon State with Permanent LocalStorage Persistence ---
     const STORAGE_KEYS = {
       DEMOS: 'lunar_rover_permanent_teacher_demos_v1',
-      CORRIDOR: 'lunar_rover_permanent_safe_corridor_v1',
-      FAILURES: 'lunar_rover_current_map_failures_v1',
-      MAP: 'lunar_rover_saved_map_v1',
-      META: 'lunar_rover_play_meta_v1',
+      CORRIDOR: 'lunar_rover_permanent_safe_corridor_v2_nakshatra',
+      FAILURES: 'lunar_rover_current_map_failures_v2_nakshatra',
+      MAP: 'lunar_rover_saved_map_v2_nakshatra',
+      META: 'lunar_rover_play_meta_v2_nakshatra',
       WINS: 'lunar_rover_total_wins_v1',
       POLICY: 'lunar_rover_policy_evolution_v1',
       AUTOLOOP: 'lunar_rover_autoloop_active_v1'
@@ -1029,239 +1185,143 @@
     // Load any previously saved permanent training data immediately
     loadPermanentTrainingData();
 
-    // Procedural Generation of 32 Craters, 55 Boulders & 16 Ridges across 20m x 20m with Zero-Entrapment Clearance
+    // Authentic 1:1 Generation of the Nakshatra Hackathon Physical Arena (from the 4 Live Arena Photos)
     function generateArenaData(forceNew = false) {
-      if (!forceNew && savedMapData && Array.isArray(savedMapData.craters) && Array.isArray(savedMapData.boulders)) {
-        // Reuse exact same map for retry or browser reload!
+      if (!forceNew && savedMapData && savedMapData.isNakshatraArena && Array.isArray(savedMapData.craters) && Array.isArray(savedMapData.boulders)) {
+        // Reuse exact same Nakshatra physical map for retry or browser reload!
         craters = JSON.parse(JSON.stringify(savedMapData.craters));
         boulders = JSON.parse(JSON.stringify(savedMapData.boulders));
-        goal = (savedMapData.goal && typeof savedMapData.goal.x === 'number') ? { ...savedMapData.goal } : { x: 7.6, y: 7.8 };
-        startPos = (savedMapData.startPos && typeof savedMapData.startPos.x === 'number') ? { ...savedMapData.startPos } : { x: -7.8, y: -7.8 };
-        if (typeof savedMapData.seed !== 'number' || !Array.isArray(savedMapData.hills)) {
-          // Upgrade older saved maps with procedural terrain features
-          savedMapData.seed = Math.floor(Math.random() * 1e9);
-          terrainSeed = savedMapData.seed;
-          savedMapData.hills = generateHills(mulberry32(savedMapData.seed));
-          try { localStorage.setItem(STORAGE_KEYS.MAP, JSON.stringify(savedMapData)); } catch (e) {}
-        }
-        terrainSeed = savedMapData.seed;
-        hills = JSON.parse(JSON.stringify(savedMapData.hills));
+        goal = (savedMapData.goal && typeof savedMapData.goal.x === 'number') ? { ...savedMapData.goal } : { x: -7.2, y: -0.8 };
+        startPos = (savedMapData.startPos && typeof savedMapData.startPos.x === 'number') ? { ...savedMapData.startPos } : { x: 5.2, y: 2.1 };
+        terrainSeed = savedMapData.seed || 20261024;
+        hills = Array.isArray(savedMapData.hills) ? JSON.parse(JSON.stringify(savedMapData.hills)) : generateHills();
         trajectory = [];
         pathLength = 0;
         return;
       }
 
-      // Generate a BRAND NEW procedural map layout for new play
+      // Build the Authentic Nakshatra Hackathon Physical Arena Layout
       craters = [];
       boulders = [];
       trajectory = [];
       pathLength = 0;
-      failureMemory = []; // New map starts with clean crash markers, while keeping permanent humanDemonstrations!
+      failureMemory = [];
       failedPathMemories = [];
       counterfactualReflexes = [];
       attemptProgressWaypoints = [];
       if (typeof build3DFailureMarkers === 'function') build3DFailureMarkers();
 
-      // Randomize Start and Final Goal Point across all 360° sectors of the 20m arena!
-      // Ensures each time the final point is placed in a completely different location across the 20m arena
-      const clampArena = (v) => Math.max(-8.4, Math.min(8.4, v));
-      const startAngle = Math.random() * Math.PI * 2;
-      const startRadius = 6.2 + Math.random() * 2.2;
-      startPos = { 
-        x: clampArena(Math.cos(startAngle) * startRadius + (Math.random() - 0.5) * 1.2), 
-        y: clampArena(Math.sin(startAngle) * startRadius + (Math.random() - 0.5) * 1.2) 
+      // Rover spawns at the base of the "NAKSHATRA" Metallic Lander Ramp (Upper-Right)
+      startPos = {
+        x: 5.2 + (forceNew ? (Math.random() - 0.5) * 0.4 : 0),
+        y: 2.1 + (forceNew ? (Math.random() - 0.5) * 0.4 : 0)
       };
 
-      // Place final goal in a distant/opposite sector across the 20m expanse (>= 13m expedition distance)
-      const goalAngle = startAngle + Math.PI + (Math.random() - 0.5) * 1.9;
-      const goalRadius = 5.4 + Math.random() * 3.0;
-      goal = { 
-        x: clampArena(Math.cos(goalAngle) * goalRadius + (Math.random() - 0.5) * 1.2), 
-        y: clampArena(Math.sin(goalAngle) * goalRadius + (Math.random() - 0.5) * 1.2) 
-      };
+      // Target Goal placed on the far West side (across the central pebble slalom corridor & left basalt strip)
+      const goalCandidates = [
+        { x: -7.2, y: -0.8 },
+        { x: -7.4, y: 2.2 },
+        { x: -7.0, y: -2.8 },
+        { x: -6.8, y: 4.5 }
+      ];
+      const chosenGoal = forceNew ? goalCandidates[Math.floor(Math.random() * goalCandidates.length)] : goalCandidates[0];
+      goal = { x: chosenGoal.x, y: chosenGoal.y };
 
-      // Ensure minimum 12.5m separation between startPos and final goal
-      if (Math.hypot(goal.x - startPos.x, goal.y - startPos.y) < 12.5) {
-        goal.x = clampArena(-startPos.x * 0.94 + (Math.random() - 0.5) * 1.2);
-        goal.y = clampArena(-startPos.y * 0.94 + (Math.random() - 0.5) * 1.2);
-      }
+      terrainSeed = 20261024 + (forceNew ? Math.floor(Math.random() * 1000) : 0);
+      hills = generateHills();
 
-      // Fresh terrain seed + 16 hills / uphill ridges for this map
-      terrainSeed = Math.floor(Math.random() * 1e9);
-      hills = generateHills(mulberry32(terrainSeed));
-
-      // 2D Rotation and optional mirror transform so every map has a completely different layout
-      const mapRot = Math.random() * Math.PI * 2;
-      const cosR = Math.cos(mapRot), sinR = Math.sin(mapRot);
-      const mirrorX = Math.random() < 0.5 ? 1 : -1;
-
-      // 32 Distinct Procedural Craters across 20m x 20m (Calderas, Basins & Micro-craterlets)
-      const craterBaseConfigs = [
-        // Central Impact Caldera (Major geological landmark)
-        { x: 0.4, y: 0.8, r: 1.85, d: 0.45 },
-        // Secondary Major Basins
-        { x: -4.5, y: -3.2, r: 1.35, d: 0.32 },
-        { x: 5.2, y: -4.8, r: 1.45, d: 0.35 },
-        { x: -3.8, y: 5.0, r: 1.25, d: 0.28 },
-        { x: 4.2, y: 4.5, r: 1.30, d: 0.30 },
-        { x: -6.2, y: 0.5, r: 1.15, d: 0.26 },
-        { x: 1.5, y: -6.8, r: 1.40, d: 0.34 },
-        { x: -1.2, y: -5.0, r: 0.95, d: 0.24 },
-        { x: 6.8, y: 0.2, r: 1.20, d: 0.28 },
-        { x: -5.5, y: 6.2, r: 1.05, d: 0.25 },
-        { x: 2.8, y: 6.5, r: 0.90, d: 0.22 },
-        // Intermediate Crater Chains & Choke Point Traps
-        { x: -2.2, y: -1.4, r: 0.85, d: 0.20 },
-        { x: 3.5, y: -1.8, r: 0.80, d: 0.19 },
-        { x: -0.8, y: 3.6, r: 0.85, d: 0.21 },
-        { x: 2.2, y: 2.2, r: 0.75, d: 0.18 },
-        { x: -6.8, y: -4.5, r: 0.90, d: 0.22 },
-        { x: -7.0, y: 4.2, r: 0.80, d: 0.19 },
-        { x: 6.5, y: -7.0, r: 0.95, d: 0.23 },
-        { x: 5.8, y: 6.8, r: 0.85, d: 0.20 },
-        { x: -3.0, y: -7.0, r: 0.80, d: 0.19 },
-        { x: 0.2, y: 7.2, r: 0.90, d: 0.22 },
-        { x: -7.2, y: -1.8, r: 0.75, d: 0.18 },
-        // Micro-craterlets (Cause severe wheel sinkage & roll)
-        { x: -1.5, y: 0.2, r: 0.52, d: 0.14 },
-        { x: 1.2, y: -0.6, r: 0.48, d: 0.13 },
-        { x: -4.0, y: 2.2, r: 0.55, d: 0.15 },
-        { x: 3.8, y: 0.5, r: 0.50, d: 0.13 },
-        { x: 0.8, y: -3.8, r: 0.58, d: 0.15 },
-        { x: -5.0, y: -6.0, r: 0.52, d: 0.14 },
-        { x: 5.5, y: -2.8, r: 0.48, d: 0.12 },
-        { x: -2.8, y: 6.8, r: 0.55, d: 0.14 },
-        { x: 7.2, y: 3.5, r: 0.50, d: 0.13 },
-        { x: -6.5, y: -7.2, r: 0.46, d: 0.12 }
+      // 1. Craters: Giant Foreground Sculpted Ring Crater + Shallow Sand/Gravel Depressions
+      craters = [
+        // Giant Foreground Sculpted Ring Crater (Bottom-Center-Left in all 4 photos)
+        { x: -1.8, y: -5.5, r: 2.15, d: 0.24, rim_h: 0.36, isNakshatraMainCrater: true },
+        // Secondary shallow depressions in the Top Brown Sand Bed & Gravel Zones
+        { x: -3.6, y: 5.4, r: 0.78, d: 0.08, rim_h: 0.04 },
+        { x: 0.4, y: 5.6, r: 0.72, d: 0.07, rim_h: 0.04 },
+        { x: 0.9, y: -5.8, r: 0.88, d: 0.10, rim_h: 0.06 },
+        { x: 3.9, y: -1.8, r: 0.82, d: 0.07, rim_h: 0.04 }
       ];
 
-      for (const c of craterBaseConfigs) {
-        const rx = (c.x * mirrorX) * cosR - c.y * sinR;
-        const ry = (c.x * mirrorX) * sinR + c.y * cosR;
-        let cx = clampArena(rx + (Math.random() - 0.5) * 1.0);
-        let cy = clampArena(ry + (Math.random() - 0.5) * 1.0);
-        const cr = c.r * (0.86 + Math.random() * 0.28);
-        const cd = c.d * (0.88 + Math.random() * 0.25);
+      // 2. Boulders & River Cobbles: Exact 48 Rocks from the 4 Nakshatra Physical Arena Photos
+      const nakshatraRocks = [
+        // --- Group A: Top Brown Fine Sand Strip Rocks (6 distinct stones/bricks) ---
+        { x: -4.8, y: 6.5, r: 0.36, rockType: 'brown_brick' }, // Large flat rectangular brick on upper-left of brown sand
+        { x: -4.1, y: 5.1, r: 0.20, rockType: 'tan_cobble' },  // Small round pebble below brick
+        { x: -2.8, y: 4.5, r: 0.28, rockType: 'brown_brick' }, // Blocky brown stone in lower-left of brown sand
+        { x: -1.2, y: 6.1, r: 0.30, rockType: 'grey_stone' },  // Grey-white angular cobble in upper-middle of brown sand
+        { x: -0.2, y: 5.0, r: 0.19, rockType: 'dark_basalt' }, // Small dark stone in middle of brown sand
+        { x: 1.6,  y: 5.3, r: 0.26, rockType: 'tan_cobble' },  // Rounded tan cobble on right side of brown sand
 
-        // Clearance enforcement: ensure crater lip never intersects spawn or goal
-        const dStart = Math.hypot(cx - startPos.x, cy - startPos.y);
-        if (dStart < cr * 1.30 + 1.2) {
-          const angle = Math.atan2(cy - startPos.y, cx - startPos.x);
-          cx = startPos.x + Math.cos(angle) * (cr * 1.30 + 1.35);
-          cy = startPos.y + Math.sin(angle) * (cr * 1.30 + 1.35);
-        }
-        const dGoal = Math.hypot(cx - goal.x, cy - goal.y);
-        if (dGoal < cr * 1.30 + 1.2) {
-          const angle = Math.atan2(cy - goal.y, cx - goal.x);
-          cx = goal.x + Math.cos(angle) * (cr * 1.30 + 1.35);
-          cy = goal.y + Math.sin(angle) * (cr * 1.30 + 1.35);
-        }
+        // --- Group B: Central-Left Newspaper Corridor Cobbles & Prominent Dark Angular Rock ---
+        { x: -1.9, y: -1.1, r: 0.33, rockType: 'dark_basalt' }, // Prominent dark charcoal angular rock right above crater rim
+        { x: -1.7, y: 1.7,  r: 0.32, rockType: 'grey_stone' },  // Large flat grey stone near upper-center newspaper
+        { x: -2.0, y: 0.6,  r: 0.27, rockType: 'tan_cobble' },  // Medium brown cobble below flat grey stone
+        { x: -1.1, y: 1.5,  r: 0.24, rockType: 'brown_brick' },
+        { x: -1.3, y: 0.8,  r: 0.22, rockType: 'tan_cobble' },
+        { x: -3.6, y: 2.1,  r: 0.24, rockType: 'grey_stone' },
+        { x: -3.2, y: 1.4,  r: 0.22, rockType: 'tan_cobble' },
+        { x: -4.2, y: 0.8,  r: 0.21, rockType: 'grey_stone' },
+        { x: -2.8, y: 0.5,  r: 0.20, rockType: 'tan_cobble' },
+        { x: -4.5, y: -0.4, r: 0.24, rockType: 'brown_brick' },
+        { x: -3.8, y: -1.1, r: 0.21, rockType: 'tan_cobble' },
+        { x: -3.1, y: -0.3, r: 0.22, rockType: 'grey_stone' },
+        { x: -2.5, y: -1.4, r: 0.20, rockType: 'tan_cobble' },
+        { x: -0.8, y: 2.1,  r: 0.21, rockType: 'tan_cobble' },
+        { x: -0.5, y: 1.1,  r: 0.22, rockType: 'grey_stone' },
+        { x: -0.9, y: 0.1,  r: 0.20, rockType: 'tan_cobble' },
+        { x: -0.4, y: -0.8, r: 0.21, rockType: 'tan_cobble' },
+        { x: -1.1, y: -1.7, r: 0.22, rockType: 'brown_brick' },
 
-        craters.push({
-          x: cx,
-          y: cy,
-          r: cr,
-          d: cd,
-          rim_h: cd * 0.32
-        });
-      }
+        // --- Group C: Central-Right Newspaper Slalom & Basalt Patch Corner Cluster ---
+        { x: 1.8,  y: 1.7,  r: 0.31, rockType: 'brown_brick' }, // Larger rocks at top-left corner of right basalt patch
+        { x: 2.1,  y: 1.1,  r: 0.26, rockType: 'dark_basalt' },
+        { x: 1.5,  y: 1.1,  r: 0.22, rockType: 'tan_cobble' },
+        { x: 0.2,  y: 1.6,  r: 0.22, rockType: 'dark_basalt' },
+        { x: 0.8,  y: 1.4,  r: 0.25, rockType: 'brown_brick' },
+        { x: 0.5,  y: 0.6,  r: 0.21, rockType: 'tan_cobble' },
+        { x: 1.1,  y: 0.4,  r: 0.23, rockType: 'brown_brick' },
+        { x: 1.6,  y: -0.2, r: 0.26, rockType: 'tan_cobble' },
+        { x: 0.1,  y: -0.2, r: 0.21, rockType: 'grey_stone' },
+        { x: 0.6,  y: -0.9, r: 0.24, rockType: 'tan_cobble' },
+        { x: 1.2,  y: -1.1, r: 0.25, rockType: 'tan_cobble' },
+        { x: 0.2,  y: -1.6, r: 0.23, rockType: 'grey_stone' },
+        { x: 0.9,  y: -1.8, r: 0.22, rockType: 'tan_cobble' },
+        { x: 1.5,  y: -1.6, r: 0.24, rockType: 'brown_brick' },
+        { x: -0.2, y: -2.1, r: 0.21, rockType: 'tan_cobble' },
+        { x: 0.5,  y: -2.3, r: 0.22, rockType: 'tan_cobble' },
+        { x: -4.9, y: 1.7,  r: 0.23, rockType: 'grey_stone' },
+        { x: -5.1, y: -1.5, r: 0.24, rockType: 'dark_basalt' },
 
-      // 55 Boulders across 20m x 20m (Rock Fields, Slalom Belts & Talus Blocks)
-      const boulderBasePositions = [
-        // West Ridge Boulder Field (Slalom Pass)
-        { x: -6.5, y: 4.2, r: 0.32 },
-        { x: -6.0, y: 5.2, r: 0.28 },
-        { x: -7.0, y: 3.0, r: 0.35 },
-        { x: -5.5, y: 3.8, r: 0.25 },
-        { x: -6.8, y: 6.0, r: 0.29 },
-        // Central Caldera Ejecta Belt
-        { x: 1.8, y: 1.5, r: 0.38 },
-        { x: -1.2, y: 1.6, r: 0.34 },
-        { x: 0.0, y: 2.4, r: 0.30 },
-        { x: -1.4, y: -0.4, r: 0.36 },
-        { x: 2.0, y: -0.2, r: 0.28 },
-        { x: 0.8, y: 2.8, r: 0.26 },
-        // Eastern Canyon & Mare Choke Points
-        { x: 4.5, y: -3.2, r: 0.36 },
-        { x: 5.5, y: -3.6, r: 0.32 },
-        { x: 3.8, y: -4.5, r: 0.28 },
-        { x: 6.0, y: -5.8, r: 0.34 },
-        { x: 4.8, y: -6.2, r: 0.27 },
-        // Southern Ridge Boulders
-        { x: -3.5, y: -6.0, r: 0.30 },
-        { x: -4.8, y: -5.0, r: 0.28 },
-        { x: -1.8, y: -6.5, r: 0.34 },
-        { x: 0.5, y: -5.5, r: 0.25 },
-        { x: 2.8, y: -6.8, r: 0.32 },
-        // Northern Highlands Rocks
-        { x: -4.5, y: 6.8, r: 0.35 },
-        { x: -2.8, y: 5.5, r: 0.28 },
-        { x: -1.0, y: 6.2, r: 0.30 },
-        { x: 1.5, y: 5.2, r: 0.26 },
-        { x: 3.5, y: 5.8, r: 0.32 },
-        { x: 5.0, y: 6.2, r: 0.36 },
-        // Intermediate Strategic Obstacles & Tight Corridors
-        { x: -2.5, y: 0.0, r: 0.28 },
-        { x: -3.8, y: -1.2, r: 0.30 },
-        { x: -2.0, y: 2.8, r: 0.26 },
-        { x: -0.5, y: -2.8, r: 0.32 },
-        { x: 2.5, y: -2.2, r: 0.27 },
-        { x: 3.2, y: 1.8, r: 0.30 },
-        { x: 4.8, y: 2.8, r: 0.33 },
-        { x: 5.8, y: 1.2, r: 0.26 },
-        { x: -5.8, y: -2.5, r: 0.31 },
-        { x: 6.2, y: -1.5, r: 0.29 },
-        { x: -3.0, y: 3.8, r: 0.27 },
-        { x: 1.2, y: -4.5, r: 0.28 },
-        { x: -5.0, y: 1.8, r: 0.25 },
-        // Perimeter & Outlier Boulders
-        { x: -8.2, y: 2.0, r: 0.34 },
-        { x: 8.0, y: -3.0, r: 0.32 },
-        { x: -7.5, y: -5.5, r: 0.28 },
-        { x: 7.8, y: 5.0, r: 0.30 },
-        { x: -2.0, y: -8.0, r: 0.32 },
-        { x: 2.5, y: 8.0, r: 0.28 },
-        { x: 8.2, y: 0.5, r: 0.35 },
-        { x: -8.0, y: 7.0, r: 0.30 },
-        { x: 6.5, y: 7.5, r: 0.28 },
-        { x: -6.0, y: -8.0, r: 0.32 },
-        { x: 7.0, y: -7.8, r: 0.30 },
-        { x: -4.0, y: 8.0, r: 0.28 },
-        { x: 3.8, y: -8.0, r: 0.33 },
-        { x: -8.2, y: -3.5, r: 0.29 },
-        { x: 8.2, y: -5.5, r: 0.31 }
+        // --- Group D: Outer Gravel & Crater Skirt Stones ---
+        { x: -3.5, y: -3.2, r: 0.24, rockType: 'tan_cobble' },
+        { x: 0.8,  y: -3.3, r: 0.25, rockType: 'tan_cobble' },
+        { x: 2.2,  y: -3.6, r: 0.26, rockType: 'dark_basalt' },
+        { x: -5.4, y: 0.2,  r: 0.22, rockType: 'grey_stone' },
+        { x: -4.8, y: -2.4, r: 0.23, rockType: 'tan_cobble' },
+        { x: 2.8,  y: 0.4,  r: 0.24, rockType: 'dark_basalt' }
       ];
 
-      for (const b of boulderBasePositions) {
-        const rx = (b.x * mirrorX) * cosR - b.y * sinR;
-        const ry = (b.x * mirrorX) * sinR + b.y * cosR;
-        let bx = clampArena(rx + (Math.random() - 0.5) * 0.8);
-        let by = clampArena(ry + (Math.random() - 0.5) * 0.8);
-        const br = b.r * (0.85 + Math.random() * 0.30);
+      for (const b of nakshatraRocks) {
+        const jitterX = forceNew ? (Math.random() - 0.5) * 0.16 : 0;
+        const jitterY = forceNew ? (Math.random() - 0.5) * 0.16 : 0;
+        let bx = b.x + jitterX;
+        let by = b.y + jitterY;
+        const br = b.r;
 
-        // Clearance enforcement: ensure boulder collider never intersects spawn or goal
-        const dStart = Math.hypot(bx - startPos.x, by - startPos.y);
-        if (dStart < br + 1.2) {
-          const angle = Math.atan2(by - startPos.y, bx - startPos.x);
-          bx = startPos.x + Math.cos(angle) * (br + 1.35);
-          by = startPos.y + Math.sin(angle) * (br + 1.35);
-        }
-        const dGoal = Math.hypot(bx - goal.x, by - goal.y);
-        if (dGoal < br + 1.2) {
-          const angle = Math.atan2(by - goal.y, bx - goal.x);
-          bx = goal.x + Math.cos(angle) * (br + 1.35);
-          by = goal.y + Math.sin(angle) * (br + 1.35);
-        }
+        // Ensure spawn and goal remain clear
+        if (Math.hypot(bx - startPos.x, by - startPos.y) < br + 0.9) continue;
+        if (Math.hypot(bx - goal.x, by - goal.y) < br + 0.9) continue;
 
         boulders.push({
           x: bx,
           y: by,
           r: br,
-          h: br * 1.15
+          h: br * 0.95,
+          rockType: b.rockType || 'tan_cobble'
         });
       }
 
       savedMapData = {
+        isNakshatraArena: true,
         craters: JSON.parse(JSON.stringify(craters)),
         boulders: JSON.parse(JSON.stringify(boulders)),
         goal: { ...goal },
@@ -1312,7 +1372,8 @@
       const height = container.clientHeight || 550;
 
       camera = new THREE.PerspectiveCamera(45, width / height, 0.05, 120);
-      camera.position.set(-11.5, 12.0, 14.5);
+      // Frame the arena from the South foreground looking North — matching the exact perspective of the 4 Nakshatra Arena photos
+      camera.position.set(0.0, 9.2, 13.8);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
       renderer.setSize(width, height);
@@ -1340,17 +1401,17 @@
       controls.maxPolarAngle = Math.PI / 2 - 0.03;
       controls.minDistance = 0.5;
       controls.maxDistance = 55.0;
-      controls.target.set(0, 0, 0);
+      controls.target.set(0, 0, -0.5);
 
-      // --- Lighting: airless Moon -> hard low-angle sun, long black shadows, faint earthshine & regolith bounce ---
-      const ambientLight = new THREE.AmbientLight(0x1e293b, 0.28);
+      // --- Lighting: Crisp Nakshatra Indoor Hackathon Arena Illumination + Directional Sun Shadows ---
+      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.38);
       scene.add(ambientLight);
 
-      const hemiLight = new THREE.HemisphereLight(0x1c2a44, 0x4a4640, 0.35); // sky earthshine / ground regolith bounce
+      const hemiLight = new THREE.HemisphereLight(0xf1f5f9, 0x645446, 0.36);
       scene.add(hemiLight);
 
-      const sunLight = new THREE.DirectionalLight(0xfff4e0, 2.5);
-      sunLight.position.set(22.0, 12.0, -15.0); // ~26 deg sun elevation -> long dramatic shadows across 20m terrain
+      const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.25);
+      sunLight.position.set(16.0, 16.0, 12.0);
       sunLight.castShadow = true;
       sunLight.shadow.mapSize.width = 4096;
       sunLight.shadow.mapSize.height = 4096;
@@ -1365,9 +1426,9 @@
       sunLight.shadow.camera.bottom = -d;
       scene.add(sunLight);
 
-      // Faint blue earthshine fill from the opposite side
-      const fillLight = new THREE.DirectionalLight(0x6fa8ff, 0.20);
-      fillLight.position.set(-16, 10, 16);
+      // Balanced overhead hall fill light from opposite side
+      const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.24);
+      fillLight.position.set(-16, 14, -12);
       scene.add(fillLight);
 
       // Starfield + Earth hanging in the black sky
@@ -1540,13 +1601,135 @@
       );
       scene.add(arenaBorderLine);
 
+      build3DNakshatraRamp();
       build3DDebris();
       buildTrackMarks();
     }
 
     // ===================== WORLD DETAIL SYSTEMS =====================
-    let outerTerrainMesh = null, arenaBorderLine = null, debrisMesh = null;
+    let outerTerrainMesh = null, arenaBorderLine = null, debrisMesh = null, nakshatraRampGroup = null;
     let regolithGrainTexture = null;
+
+    // Build 3D Replica of the Silver "NAKSHATRA" Lander Egress Ramp (Images 1 & 4, Upper-Right / East)
+    function build3DNakshatraRamp() {
+      if (nakshatraRampGroup) {
+        scene.remove(nakshatraRampGroup);
+      }
+      nakshatraRampGroup = new THREE.Group();
+
+      // Procedural high-resolution canvas texture for the "NAKSHATRA" metallic ramp plate
+      const cvs = document.createElement('canvas');
+      cvs.width = 1024;
+      cvs.height = 512;
+      const ctx = cvs.getContext('2d');
+
+      // Brushed silver-grey metallic base
+      const grad = ctx.createLinearGradient(0, 0, 1024, 512);
+      grad.addColorStop(0.0, '#cbd5e1');
+      grad.addColorStop(0.5, '#94a3b8');
+      grad.addColorStop(1.0, '#cbd5e1');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 512);
+
+      // Subtle metallic brushing & tread lines
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.22)';
+      ctx.lineWidth = 3;
+      for (let x = 40; x < 1024; x += 48) {
+        ctx.beginPath();
+        ctx.moveTo(x, 24);
+        ctx.lineTo(x, 488);
+        ctx.stroke();
+      }
+
+      // Rivet bolt heads along top & bottom edges
+      ctx.fillStyle = '#334155';
+      for (let x = 36; x < 1000; x += 64) {
+        ctx.beginPath(); ctx.arc(x, 26, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x, 486, 7, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Bold black "NAKSHATRA" stencil lettering across the ramp deck
+      ctx.save();
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 116px "Inter", "Arial Black", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('NAKSHATRA', 512, 256);
+      ctx.restore();
+
+      const rampTex = new THREE.CanvasTexture(cvs);
+      rampTex.anisotropy = 4;
+
+      const metalMat = new THREE.MeshStandardMaterial({
+        color: 0xcbd5e1,
+        roughness: 0.42,
+        metalness: 0.65
+      });
+      const deckMat = new THREE.MeshStandardMaterial({
+        map: rampTex,
+        roughness: 0.45,
+        metalness: 0.55
+      });
+      const woodBlockMat = new THREE.MeshStandardMaterial({
+        color: 0x855836,
+        roughness: 0.90,
+        metalness: 0.05
+      });
+
+      // Ramp inclined plate (Length = 2.6m, Width = 1.45m)
+      const rampLen = 2.60;
+      const rampWidth = 1.45;
+      const inclineGroup = new THREE.Group();
+
+      const rampPlate = new THREE.Mesh(new THREE.BoxGeometry(rampLen, 0.035, rampWidth), deckMat);
+      rampPlate.castShadow = true;
+      rampPlate.receiveShadow = true;
+      inclineGroup.add(rampPlate);
+
+      // Raised side guard flange rails along the ramp edges (visible in Image 1 & 4)
+      const railGeo = new THREE.BoxGeometry(rampLen, 0.095, 0.045);
+      const leftRail = new THREE.Mesh(railGeo, metalMat);
+      leftRail.position.set(0, 0.045, -rampWidth / 2 + 0.022);
+      leftRail.castShadow = true;
+      inclineGroup.add(leftRail);
+
+      const rightRail = new THREE.Mesh(railGeo, metalMat);
+      rightRail.position.set(0, 0.045, rampWidth / 2 - 0.022);
+      rightRail.castShadow = true;
+      inclineGroup.add(rightRail);
+
+      // Pitch ramp down toward the arena floor (-X local direction = down-ramp toward rover startPos)
+      const rampPitch = 0.22; // ~12.6 deg incline
+      inclineGroup.rotation.z = rampPitch;
+      inclineGroup.position.set(0, 0.28, 0);
+      nakshatraRampGroup.add(inclineGroup);
+
+      // Upper flat lander egress platform at the top of the ramp
+      const upperDeck = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.04, rampWidth), metalMat);
+      upperDeck.position.set(1.68, 0.56, 0);
+      upperDeck.castShadow = true;
+      upperDeck.receiveShadow = true;
+      nakshatraRampGroup.add(upperDeck);
+
+      // Wooden support blocks & pillars underneath the ramp (visible in Image 1 & 4)
+      const block1 = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.54, rampWidth * 0.88), woodBlockMat);
+      block1.position.set(1.55, 0.27, 0);
+      block1.castShadow = true;
+      nakshatraRampGroup.add(block1);
+
+      const block2 = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.30, rampWidth * 0.85), woodBlockMat);
+      block2.position.set(0.35, 0.15, 0);
+      block2.castShadow = true;
+      nakshatraRampGroup.add(block2);
+
+      // Position ramp on the Right/East side (sim x: 6.9, y: 2.95 -> Three.js x: 6.9, z: -2.95)
+      // Angled so the ramp descends toward startPos (5.2, 2.1)
+      const baseElev = getElevation(6.9, 2.95);
+      nakshatraRampGroup.position.set(6.9, baseElev, -2.95);
+      nakshatraRampGroup.rotation.y = -0.38; // Angled toward central-west arena matching Image 1 & 4
+
+      scene.add(nakshatraRampGroup);
+    }
 
     // Procedural regolith grain texture (fine sand speckle + clods) used as albedo & bump
     function getRegolithGrainTexture() {
@@ -1587,49 +1770,80 @@
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     }
 
-    // Instanced debris: 5,500 crater ejecta pebbles, boulder talus skirts, scattered regolith gravel across 20m arena
+    // Instanced 3D gravel & pebble beds: 6,500 pebbles across the Nakshatra Basalt Beds, Foreground Crater Blanket & Sand Strip
     function build3DDebris() {
       if (debrisMesh) { scene.remove(debrisMesh); debrisMesh.geometry.dispose(); debrisMesh.material.dispose(); }
       const rng = mulberry32((terrainSeed * 31 + 7) >>> 0);
-      const count = 5500;
+      const count = 6500;
       const geo = new THREE.DodecahedronGeometry(1, 0);
-      const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0.02, flatShading: true });
+      const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92, metalness: 0.04, flatShading: true });
       debrisMesh = new THREE.InstancedMesh(geo, mat, count);
       const dummy = new THREE.Object3D();
       const col = new THREE.Color();
       let placed = 0, guard = 0;
       const halfLimit = ARENA_SIZE_M / 2.0 - 0.15;
-      while (placed < count && guard++ < count * 4) {
-        let x, y, s;
+      while (placed < count && guard++ < count * 5) {
+        let x, y, s, zoneColorType = 'tan';
         const mode = rng();
-        if (mode < 0.45 && craters.length) {
-          const c = craters[Math.floor(rng() * craters.length)];
-          const ang = rng() * Math.PI * 2;
-          const t = 0.95 + Math.pow(rng(), 1.8) * 1.5;
-          x = c.x + Math.cos(ang) * c.r * t;
-          y = c.y + Math.sin(ang) * c.r * t;
-          s = 0.007 + rng() * 0.026 * Math.max(0.3, 1.8 - t * 0.6);
-        } else if (mode < 0.68 && boulders.length) {
+        if (mode < 0.28) {
+          // Zone 2: Left (West) dark blue-grey crushed basalt gravel strip
+          x = -8.6 + rng() * 2.7;
+          y = -3.4 + rng() * 9.5;
+          s = 0.014 + rng() * 0.032;
+          zoneColorType = 'basalt';
+        } else if (mode < 0.56) {
+          // Zone 3: Right (East) dark blue-grey crushed basalt gravel patch
+          x = 1.9 + rng() * 4.1;
+          y = -4.2 + rng() * 4.9;
+          // Respect lower-left V-notch in the right basalt patch
+          if (x < 3.4 && y < -2.3) continue;
+          s = 0.014 + rng() * 0.032;
+          zoneColorType = 'basalt';
+        } else if (mode < 0.86) {
+          // Zone 4: Foreground (South) Giant Sculpted Ring Crater rim & coarse tan river-pebble blanket
+          if (rng() < 0.55) {
+            const ang = rng() * Math.PI * 2;
+            const rad = 2.15 * (0.38 + rng() * 1.15);
+            x = -1.8 + Math.cos(ang) * rad;
+            y = -5.5 + Math.sin(ang) * rad;
+          } else {
+            x = -4.2 + rng() * 7.2;
+            y = -8.6 + rng() * 6.2;
+          }
+          s = 0.016 + rng() * 0.038;
+          zoneColorType = 'tan_pebble';
+        } else if (mode < 0.95) {
+          // Zone 1: Top (North) brown sand strip soil clods & small brick fragments
+          x = -5.5 + rng() * 7.9;
+          y = 2.9 + rng() * 4.6;
+          s = 0.012 + rng() * 0.028;
+          zoneColorType = 'brown_sand';
+        } else {
+          // Central newspaper corridor scattered small pebbles around boulders
           const b = boulders[Math.floor(rng() * boulders.length)];
           const ang = rng() * Math.PI * 2;
-          const dist = b.r * (1.05 + rng() * 1.4);
+          const dist = b.r * (1.08 + rng() * 1.6);
           x = b.x + Math.cos(ang) * dist;
           y = b.y + Math.sin(ang) * dist;
-          s = 0.007 + rng() * 0.026;
-        } else {
-          x = (rng() - 0.5) * (ARENA_SIZE_M - 0.4);
-          y = (rng() - 0.5) * (ARENA_SIZE_M - 0.4);
-          s = 0.005 + Math.pow(rng(), 3) * 0.035;
+          s = 0.010 + rng() * 0.024;
+          zoneColorType = 'tan_pebble';
         }
         if (Math.abs(x) > halfLimit || Math.abs(y) > halfLimit) continue;
         if (boulders.some(b => Math.hypot(x - b.x, y - b.y) < b.r + 0.02)) continue;
-        dummy.position.set(x, getElevation(x, y) + s * 0.30, -y);
+        dummy.position.set(x, getElevation(x, y) + s * 0.32, -y);
         dummy.rotation.set(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI);
-        dummy.scale.set(s * (0.7 + rng() * 0.6), s * (0.45 + rng() * 0.4), s * (0.7 + rng() * 0.6));
+        dummy.scale.set(s * (0.75 + rng() * 0.55), s * (0.48 + rng() * 0.42), s * (0.75 + rng() * 0.55));
         dummy.updateMatrix();
         debrisMesh.setMatrixAt(placed, dummy.matrix);
-        const shade = 0.40 + rng() * 0.32;
-        col.setRGB(shade, shade * 0.97, shade * 0.92);
+
+        const v = (rng() - 0.5) * 0.10;
+        if (zoneColorType === 'basalt') {
+          col.setRGB(0.19 + v * 0.7, 0.24 + v * 0.8, 0.30 + v);
+        } else if (zoneColorType === 'brown_sand') {
+          col.setRGB(0.54 + v, 0.37 + v * 0.8, 0.23 + v * 0.6);
+        } else {
+          col.setRGB(0.64 + v, 0.52 + v * 0.85, 0.38 + v * 0.7);
+        }
         debrisMesh.setColorAt(placed, col);
         placed++;
       }
@@ -2138,7 +2352,7 @@
       scene.add(roverGroup);
     }
 
-    // --- Build Realistic Fractured Lunar Boulders (Basaltic & Anorthositic Breccia) ---
+    // --- Build Authentic 3D Nakshatra Arena Rocks, Bricks & River Cobbles ---
     function build3DBoulders() {
       boulderMeshes.forEach(m => {
         scene.remove(m);
@@ -2153,15 +2367,29 @@
         const b = boulders[bIdx];
         const bz = getElevation(b.x, b.y);
         const rng = mulberry32((terrainSeed + bIdx * 997 + 17) >>> 0);
+        const rType = b.rockType || 'tan_cobble';
 
-        // Subdivided icosahedron for sharp angular fracture facets + basal embedding
+        // Subdivided icosahedron for rock facets + basal embedding
         const geo = new THREE.IcosahedronGeometry(b.r, 2);
         const pos = geo.attributes.position;
 
-        // Anisotropic boulder proportions (tabular / blocky lunar ejecta blocks)
-        const sx = 0.85 + rng() * 0.40;
-        const sy = 0.65 + rng() * 0.35;
-        const sz = 0.85 + rng() * 0.40;
+        // Proportions customized by physical rock type in the Nakshatra Arena photos
+        let sx = 0.90 + rng() * 0.35;
+        let sy = 0.62 + rng() * 0.30;
+        let sz = 0.90 + rng() * 0.35;
+        if (rType === 'brown_brick') {
+          sx = 1.15 + rng() * 0.30;
+          sy = 0.58 + rng() * 0.20;
+          sz = 0.82 + rng() * 0.25;
+        } else if (rType === 'tan_cobble') {
+          sx = 0.95 + rng() * 0.28;
+          sy = 0.68 + rng() * 0.24;
+          sz = 0.92 + rng() * 0.28;
+        } else if (rType === 'dark_basalt') {
+          sx = 0.88 + rng() * 0.42;
+          sy = 0.72 + rng() * 0.32;
+          sz = 0.88 + rng() * 0.42;
+        }
         const phaseX = rng() * 10, phaseY = rng() * 10;
 
         for (let i = 0; i < pos.count; i++) {
@@ -2169,16 +2397,18 @@
           const len = Math.hypot(vx, vy, vz) || 1;
           const nx = vx / len, ny = vy / len, nz = vz / len;
 
-          // Multi-frequency angular fracture displacement
+          // Multi-frequency angular fracture displacement (smoother for river cobbles, sharper for bricks/basalt)
           const f1 = fbm(nx * 2.4 + phaseX, ny * 2.4 + nz * 2.4 + phaseY, 3);
           const f2 = Math.abs(vnoise(nx * 5.5 + phaseY, nz * 5.5 + phaseX) - 0.5);
-          const disp = 0.88 + 0.28 * f1 - 0.14 * f2;
+          const disp = (rType === 'tan_cobble')
+            ? (0.92 + 0.18 * f1 - 0.06 * f2)
+            : (0.86 + 0.30 * f1 - 0.16 * f2);
 
           vx *= sx * disp;
           vy *= sy * disp;
           vz *= sz * disp;
 
-          // Flatten bottom half slightly so rock sits embedded in regolith fillet
+          // Flatten bottom half slightly so rock sits embedded on newspaper/sand
           if (vy < -b.r * 0.25) {
             vy = -b.r * 0.25 + (vy + b.r * 0.25) * 0.35;
           }
@@ -2187,28 +2417,44 @@
         }
         geo.computeVertexNormals();
 
-        // Vertex coloring: dark basaltic underside, lighter dust-draped top faces
+        // Authentic vertex coloring matching the 4 Nakshatra Arena photos
         const nrm = geo.attributes.normal;
         const vCols = new Float32Array(pos.count * 3);
-        const baseShade = 0.28 + rng() * 0.18;
-        const warmTint = rng() * 0.06;
+        let baseR = 0.62, baseG = 0.51, baseB = 0.39;
+        if (rType === 'brown_brick') {
+          baseR = 0.58 + rng() * 0.08;
+          baseG = 0.39 + rng() * 0.06;
+          baseB = 0.24 + rng() * 0.05;
+        } else if (rType === 'tan_cobble') {
+          baseR = 0.65 + rng() * 0.10;
+          baseG = 0.54 + rng() * 0.08;
+          baseB = 0.41 + rng() * 0.07;
+        } else if (rType === 'dark_basalt') {
+          baseR = 0.18 + rng() * 0.06;
+          baseG = 0.22 + rng() * 0.06;
+          baseB = 0.27 + rng() * 0.07;
+        } else if (rType === 'grey_stone') {
+          baseR = 0.55 + rng() * 0.12;
+          baseG = 0.55 + rng() * 0.12;
+          baseB = 0.54 + rng() * 0.12;
+        }
+
         for (let i = 0; i < pos.count; i++) {
           const upFactor = Math.max(0, nrm.getY(i));
-          const dustCoat = 0.16 * Math.pow(upFactor, 1.6);
-          const cVal = baseShade + dustCoat;
-          vCols[i * 3] = cVal + warmTint;
-          vCols[i * 3 + 1] = cVal + warmTint * 0.5;
-          vCols[i * 3 + 2] = cVal;
+          const dustCoat = 0.12 * Math.pow(upFactor, 1.5);
+          vCols[i * 3] = Math.min(1.0, baseR + dustCoat);
+          vCols[i * 3 + 1] = Math.min(1.0, baseG + dustCoat * 0.92);
+          vCols[i * 3 + 2] = Math.min(1.0, baseB + dustCoat * 0.82);
         }
         geo.setAttribute('color', new THREE.BufferAttribute(vCols, 3));
 
         const rockMat = new THREE.MeshStandardMaterial({
           vertexColors: true,
           bumpMap: grainTex,
-          bumpScale: 0.015,
-          roughness: 0.92,
-          metalness: 0.06,
-          flatShading: true
+          bumpScale: 0.014,
+          roughness: rType === 'tan_cobble' ? 0.82 : 0.92,
+          metalness: 0.04,
+          flatShading: rType !== 'tan_cobble'
         });
 
         const mesh = new THREE.Mesh(geo, rockMat);
@@ -4419,6 +4665,31 @@
         rCtx.fillText(`${distM}m`, radarCanvas.width / 2 + ringPix + 2, radarCanvas.height / 2 - 2);
       }
 
+      // --- Nakshatra Physical Arena Zones on Tactical Radar ---
+      // 1. Top Brown Fine Sand Strip
+      rCtx.fillStyle = 'rgba(180, 120, 72, 0.25)';
+      rCtx.fillRect(toRx(-5.8), toRy(7.8), toRx(2.6) - toRx(-5.8), toRy(2.7) - toRy(7.8));
+      // 2. Left Dark Blue-Grey Basalt Gravel Strip
+      rCtx.fillStyle = 'rgba(56, 72, 92, 0.42)';
+      rCtx.fillRect(toRx(-8.8), toRy(6.2), toRx(-5.7) - toRx(-8.8), toRy(-3.6) - toRy(6.2));
+      // 3. Right Dark Blue-Grey Basalt Gravel Patch
+      rCtx.fillRect(toRx(1.8), toRy(0.9), toRx(6.2) - toRx(1.8), toRy(-4.5) - toRy(0.9));
+      // 4. Bottom Coarse Tan Pebble Blanket
+      rCtx.fillStyle = 'rgba(194, 158, 118, 0.22)';
+      rCtx.fillRect(toRx(-4.4), toRy(-2.1), toRx(3.2) - toRx(-4.4), toRy(-8.8) - toRy(-2.1));
+      // 5. Silver "NAKSHATRA" Lander Ramp
+      rCtx.save();
+      rCtx.translate(toRx(6.9), toRy(2.95));
+      rCtx.rotate(0.38);
+      rCtx.fillStyle = 'rgba(203, 213, 225, 0.80)';
+      rCtx.strokeStyle = '#38bdf8';
+      rCtx.lineWidth = 1;
+      const rw = (2.6 / ARENA_SIZE_M) * radarCanvas.width;
+      const rh = (1.45 / ARENA_SIZE_M) * radarCanvas.height;
+      rCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
+      rCtx.strokeRect(-rw / 2, -rh / 2, rw, rh);
+      rCtx.restore();
+
       // Topographic Hills & Uphill Ridges (Soft Emerald/Slate Contours)
       if (typeof hills !== 'undefined' && hills.length > 0) {
         for (const h of hills) {
@@ -5608,8 +5879,8 @@
       activeCameraMode = e.target.value;
       if (activeCameraMode === 'orbit') {
         controls.enabled = true;
-        camera.position.set(-6.5, 7.5, 8.5);
-        controls.target.set(0, 0, 0);
+        camera.position.set(0.0, 9.2, 13.8);
+        controls.target.set(0, 0, -0.5);
       } else {
         controls.enabled = false;
       }
