@@ -142,12 +142,12 @@
     </div>
   </div>
 
-  <!-- Physical Hardware Bridge Bar: ESP32-S3 #1 (OV7670 + 2x BTS7960B + FlySky FS-iA9B) & ESP32-S3-CAM #2 -->
+  <!-- Physical Hardware Bridge Bar: ESP32-S3 #1 (OV7670 + 1x L298N + FlySky FS-iA9B) & ESP32-S3-CAM #2 -->
   <div class="bg-slate-900/95 border border-cyan-500/40 rounded-xl px-3.5 py-2 mb-3 flex flex-wrap items-center justify-between gap-2 shadow-lg text-xs font-mono">
     <div class="flex flex-wrap items-center gap-2">
       <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-600 font-bold text-[10px]">⚡ ESP32-S3 HARDWARE LINK</span>
       <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-slate-800">
-        <span class="text-slate-400 text-[10px]">ESP1 (OV7670+BTS7960+FS-iA9B):</span>
+        <span class="text-slate-400 text-[10px]">ESP1 (OV7670+L298N+FS-iA9B):</span>
         <input id="inp-esp1-ip" type="text" value="127.0.0.1:8081" class="bg-slate-900 text-cyan-300 border border-slate-700 rounded px-1.5 py-0.5 w-28 text-[10px] focus:outline-none focus:border-cyan-400" title="127.0.0.1:8081 (COM7 USB Bridge) or 192.168.4.1 (Wi-Fi SoftAP)" />
       </div>
       <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-slate-800">
@@ -168,15 +168,15 @@
       </button>
     </div>
 
-    <!-- Live BTS7960B (Left 3 Motors / Right 3 Motors) & FlySky Telemetry Readout -->
+    <!-- Live Single L298N (ChA: Left 3 Motors / ChB: Right 3 Motors) & FlySky Telemetry Readout -->
     <div class="flex flex-wrap items-center gap-2 text-[10px]">
       <div class="bg-slate-950 px-2 py-1 rounded border border-slate-800">
-        <span class="text-slate-400">L-BTS7960 (3 Mot GPIO1/2):</span>
-        <span id="lbl-bts-left" class="text-emerald-400 font-bold ml-1">RPWM:0 LPWM:0</span>
+        <span class="text-slate-400">L298N ChA (3L GPIO1/2):</span>
+        <span id="lbl-bts-left" class="text-emerald-400 font-bold ml-1">IN1:0 IN2:0</span>
       </div>
       <div class="bg-slate-950 px-2 py-1 rounded border border-slate-800">
-        <span class="text-slate-400">R-BTS7960 (3 Mot GPIO40/41):</span>
-        <span id="lbl-bts-right" class="text-emerald-400 font-bold ml-1">RPWM:0 LPWM:0</span>
+        <span class="text-slate-400">L298N ChB (3R GPIO40/41):</span>
+        <span id="lbl-bts-right" class="text-emerald-400 font-bold ml-1">IN3:0 IN4:0</span>
       </div>
       <div class="bg-slate-950 px-2 py-1 rounded border border-slate-800">
         <span class="text-slate-400">FS-iA9B CH1/CH2:</span>
@@ -6535,9 +6535,9 @@
       const rLpwm = rPwm < 0 ? -rPwm : 0;
 
       const elBtsL = document.getElementById('lbl-bts-left');
-      if (elBtsL) elBtsL.textContent = `RPWM:${lRpwm} LPWM:${lLpwm}`;
+      if (elBtsL) elBtsL.textContent = `IN1:${lRpwm} IN2:${lLpwm}`;
       const elBtsR = document.getElementById('lbl-bts-right');
-      if (elBtsR) elBtsR.textContent = `RPWM:${rRpwm} LPWM:${rLpwm}`;
+      if (elBtsR) elBtsR.textContent = `IN3:${rRpwm} IN4:${rLpwm}`;
       const elSticks = document.getElementById('lbl-ibus-sticks');
       if (elSticks) elSticks.textContent = `${hwBridgeState.rcCh1Steer} / ${hwBridgeState.rcCh2Throttle} µs`;
 

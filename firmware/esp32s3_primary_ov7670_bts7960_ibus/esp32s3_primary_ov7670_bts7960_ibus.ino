@@ -10,12 +10,15 @@
  *     - Hardware-accelerated RGB565 -> JPEG compression (frame2jpg)
  *     - Streams live JPEG frames over HTTP (http://192.168.4.1/capture)
  *       AND over USB Serial (COM7) via "CAPTURE\n" (Base64 JPEG)
- *  2. 2x BTS7960B 43A H-Bridge Motor Drivers (6-Wheel Rocker-Bogie Skid-Steer)
- *     - Dedicated LEDC Channels 2..5 (20 kHz) so motor PWM never conflicts with
- *       the OV7670 8 MHz XCLK timer!
- *     - Left BTS7960B  (GPIO 1 RPWM, GPIO 2 LPWM)  -> 3 Left Motors in parallel
- *     - Right BTS7960B (GPIO 40 RPWM, GPIO 41 LPWM) -> 3 Right Motors in parallel
- *     - Shared Enable  (GPIO 42 R_EN + L_EN)
+ *  2. Single L298N Dual H-Bridge Motor Driver (6-Wheel Rocker-Bogie Skid-Steer)
+ *     - Dedicated LEDC Channels 2..5 (1 kHz PWM) so motor PWM never conflicts
+ *       with the OV7670 8 MHz XCLK timer (LEDC_CHANNEL_0)!
+ *     - Channel A (OUT1 & OUT2) -> 3 Left Motors wired in parallel:
+ *         ENA = GPIO 42, IN1 = GPIO 1 (Fwd PWM), IN2 = GPIO 2 (Rev PWM)
+ *     - Channel B (OUT3 & OUT4) -> 3 Right Motors wired in parallel:
+ *         ENB = GPIO 39, IN3 = GPIO 40 (Fwd PWM), IN4 = GPIO 41 (Rev PWM)
+ *     - Supports both 6-wire (ENA/ENB connected to GPIO 42/39) and 4-wire
+ *       (ENA/ENB 5V jumpers kept on L298N board, IN1..IN4 connected) wiring!
  *  3. FlySky FS-iA9B / FS-iA6B / FS-iA10B RC Receiver on ONE Pin (i-BUS Serial)
  *     - Single-wire i-BUS on GPIO 14 (UART1 RX, 115200 baud, 10 channels @ 7ms)
  *     - CH1: Steering, CH2: Throttle, CH3: Speed Limit, CH5 (SwA): Manual/Auto,
@@ -84,20 +87,23 @@ const char* AP_PASSWORD   = "12345678";
 #define CAM_PIN_PCLK    11   // Pixel Clock
 
 // ============================================================================
-// 3. 2x BTS7960B MOTOR DRIVER PINOUT (ZERO CONFLICT WITH OV7670 GPIOs 4..18)
+// 3. SINGLE L298N DUAL H-BRIDGE MOTOR DRIVER PINOUT (ZERO CONFLICT WITH OV7670)
 // ============================================================================
-#define LEFT_BTS_RPWM_PIN    1   // Left Forward PWM  (BTS7960 #1 Pin 1: RPWM)
-#define LEFT_BTS_LPWM_PIN    2   // Left Reverse PWM  (BTS7960 #1 Pin 2: LPWM)
-#define RIGHT_BTS_RPWM_PIN  40   // Right Forward PWM (BTS7960 #2 Pin 1: RPWM)
-#define RIGHT_BTS_LPWM_PIN  41   // Right Reverse PWM (BTS7960 #2 Pin 2: LPWM)
-#define BTS_ENABLE_PIN      42   // Shared R_EN + L_EN for both BTS7960B drivers
+// Channel A (OUT1 & OUT2) drives all 3 Left-Side Motors wired in parallel
+// Channel B (OUT3 & OUT4) drives all 3 Right-Side Motors wired in parallel
+#define L298N_ENA_PIN       42   // L298N ENA (Left Enable; or leave 5V jumper on)
+#define L298N_IN1_PIN        1   // L298N IN1 (Left Forward PWM)
+#define L298N_IN2_PIN        2   // L298N IN2 (Left Reverse PWM)
+#define L298N_IN3_PIN       40   // L298N IN3 (Right Forward PWM)
+#define L298N_IN4_PIN       41   // L298N IN4 (Right Reverse PWM)
+#define L298N_ENB_PIN       39   // L298N ENB (Right Enable; or leave 5V jumper on)
 
-#define CH_LEFT_RPWM         2
-#define CH_LEFT_LPWM         3
-#define CH_RIGHT_RPWM        4
-#define CH_RIGHT_LPWM        5
-#define MOTOR_PWM_FREQ   20000
-#define MOTOR_PWM_RES        8
+#define CH_L298N_IN1         2
+#define CH_L298N_IN2         3
+#define CH_L298N_IN3         4
+#define CH_L298N_IN4         5
+#define MOTOR_PWM_FREQ    1000   // 1 kHz optimal switching frequency for L298N
+#define MOTOR_PWM_RES        8   // 8-bit duty resolution (0..255)
 
 // ============================================================================
 // 4. FLYSKY FS-iA9B / FS-iA6B / FS-iA10B SINGLE-PIN i-BUS RECEIVER INPUT
@@ -148,36 +154,37 @@ int tofLeftMm  = 1200;
 int tofRightMm = 1200;
 
 // ============================================================================
-// BTS7960B DUAL H-BRIDGE MOTOR ACTUATION (ESP32 CORE 3.x LEDC CHANNELS 2..5)
+// SINGLE L298N DUAL H-BRIDGE MOTOR ACTUATION (ESP32 CORE 3.x LEDC CHANNELS 2..5)
 // ============================================================================
 void setupMotorDrivers() {
-  pinMode(BTS_ENABLE_PIN, OUTPUT);
-  digitalWrite(BTS_ENABLE_PIN, HIGH);
+  pinMode(L298N_ENA_PIN, OUTPUT);
+  pinMode(L298N_ENB_PIN, OUTPUT);
+  digitalWrite(L298N_ENA_PIN, LOW);
+  digitalWrite(L298N_ENB_PIN, LOW);
 
-  ledcAttachChannel(LEFT_BTS_RPWM_PIN,  MOTOR_PWM_FREQ, MOTOR_PWM_RES, CH_LEFT_RPWM);
-  ledcAttachChannel(LEFT_BTS_LPWM_PIN,  MOTOR_PWM_FREQ, MOTOR_PWM_RES, CH_LEFT_LPWM);
-  ledcAttachChannel(RIGHT_BTS_RPWM_PIN, MOTOR_PWM_FREQ, MOTOR_PWM_RES, CH_RIGHT_RPWM);
-  ledcAttachChannel(RIGHT_BTS_LPWM_PIN, MOTOR_PWM_FREQ, MOTOR_PWM_RES, CH_RIGHT_LPWM);
+  ledcAttachChannel(L298N_IN1_PIN, MOTOR_PWM_FREQ, MOTOR_PWM_RES, CH_L298N_IN1);
+  ledcAttachChannel(L298N_IN2_PIN, MOTOR_PWM_FREQ, MOTOR_PWM_RES, CH_L298N_IN2);
+  ledcAttachChannel(L298N_IN3_PIN, MOTOR_PWM_FREQ, MOTOR_PWM_RES, CH_L298N_IN3);
+  ledcAttachChannel(L298N_IN4_PIN, MOTOR_PWM_FREQ, MOTOR_PWM_RES, CH_L298N_IN4);
 
-  ledcWrite(LEFT_BTS_RPWM_PIN, 0);
-  ledcWrite(LEFT_BTS_LPWM_PIN, 0);
-  ledcWrite(RIGHT_BTS_RPWM_PIN, 0);
-  ledcWrite(RIGHT_BTS_LPWM_PIN, 0);
+  ledcWrite(L298N_IN1_PIN, 0);
+  ledcWrite(L298N_IN2_PIN, 0);
+  ledcWrite(L298N_IN3_PIN, 0);
+  ledcWrite(L298N_IN4_PIN, 0);
 }
 
-void setBTS7960Motors(float leftNorm, float rightNorm, bool estop) {
+void setL298NMotors(float leftNorm, float rightNorm, bool estop) {
   if (estop) {
-    digitalWrite(BTS_ENABLE_PIN, LOW);
-    ledcWrite(LEFT_BTS_RPWM_PIN, 0);
-    ledcWrite(LEFT_BTS_LPWM_PIN, 0);
-    ledcWrite(RIGHT_BTS_RPWM_PIN, 0);
-    ledcWrite(RIGHT_BTS_LPWM_PIN, 0);
+    digitalWrite(L298N_ENA_PIN, LOW);
+    digitalWrite(L298N_ENB_PIN, LOW);
+    ledcWrite(L298N_IN1_PIN, 0);
+    ledcWrite(L298N_IN2_PIN, 0);
+    ledcWrite(L298N_IN3_PIN, 0);
+    ledcWrite(L298N_IN4_PIN, 0);
     appliedLeftPWM = 0;
     appliedRightPWM = 0;
     return;
   }
-
-  digitalWrite(BTS_ENABLE_PIN, HIGH);
 
   leftNorm  = constrain(leftNorm, -1.0f, 1.0f);
   rightNorm = constrain(rightNorm, -1.0f, 1.0f);
@@ -185,20 +192,34 @@ void setBTS7960Motors(float leftNorm, float rightNorm, bool estop) {
   appliedLeftPWM  = (int)(leftNorm * 255.0f);
   appliedRightPWM = (int)(rightNorm * 255.0f);
 
-  if (appliedLeftPWM >= 0) {
-    ledcWrite(LEFT_BTS_RPWM_PIN, appliedLeftPWM);
-    ledcWrite(LEFT_BTS_LPWM_PIN, 0);
+  // Channel A (OUT1 & OUT2 -> 3 Left Motors in parallel)
+  if (appliedLeftPWM > 0) {
+    digitalWrite(L298N_ENA_PIN, HIGH);
+    ledcWrite(L298N_IN1_PIN, appliedLeftPWM);
+    ledcWrite(L298N_IN2_PIN, 0);
+  } else if (appliedLeftPWM < 0) {
+    digitalWrite(L298N_ENA_PIN, HIGH);
+    ledcWrite(L298N_IN1_PIN, 0);
+    ledcWrite(L298N_IN2_PIN, -appliedLeftPWM);
   } else {
-    ledcWrite(LEFT_BTS_RPWM_PIN, 0);
-    ledcWrite(LEFT_BTS_LPWM_PIN, -appliedLeftPWM);
+    digitalWrite(L298N_ENA_PIN, LOW);
+    ledcWrite(L298N_IN1_PIN, 0);
+    ledcWrite(L298N_IN2_PIN, 0);
   }
 
-  if (appliedRightPWM >= 0) {
-    ledcWrite(RIGHT_BTS_RPWM_PIN, appliedRightPWM);
-    ledcWrite(RIGHT_BTS_LPWM_PIN, 0);
+  // Channel B (OUT3 & OUT4 -> 3 Right Motors in parallel)
+  if (appliedRightPWM > 0) {
+    digitalWrite(L298N_ENB_PIN, HIGH);
+    ledcWrite(L298N_IN3_PIN, appliedRightPWM);
+    ledcWrite(L298N_IN4_PIN, 0);
+  } else if (appliedRightPWM < 0) {
+    digitalWrite(L298N_ENB_PIN, HIGH);
+    ledcWrite(L298N_IN3_PIN, 0);
+    ledcWrite(L298N_IN4_PIN, -appliedRightPWM);
   } else {
-    ledcWrite(RIGHT_BTS_RPWM_PIN, 0);
-    ledcWrite(RIGHT_BTS_LPWM_PIN, -appliedRightPWM);
+    digitalWrite(L298N_ENB_PIN, LOW);
+    ledcWrite(L298N_IN3_PIN, 0);
+    ledcWrite(L298N_IN4_PIN, 0);
   }
 }
 
@@ -310,6 +331,7 @@ String buildStatusJson() {
 
   String json = "{";
   json += "\"board\":\"ESP32-S3-PRIMARY-OV7670\",";
+  json += "\"motor_driver\":\"L298N_SINGLE\",";
   json += "\"camera_ok\":" + String(cameraInitialized ? "true" : "false") + ",";
   json += "\"camera_pid\":" + String(cameraPID) + ",";
   json += "\"psram_bytes\":" + String(ESP.getPsramSize()) + ",";
@@ -453,13 +475,13 @@ void pollUsbSerialCommands() {
 void handleRootDashboard() {
   sendCorsHeaders();
   String html = "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>";
-  html += "<title>NAKSHATRA ESP32-S3 OV7670 + BTS7960B + FlySky</title>";
+  html += "<title>NAKSHATRA ESP32-S3 OV7670 + L298N + FlySky</title>";
   html += "<style>body{background:#060a12;color:#e2e8f0;font-family:monospace;text-align:center;margin:0;padding:16px}";
   html += ".card{max-width:520px;margin:0 auto;background:#0f172a;border:1px solid #06b6d4;border-radius:12px;padding:14px}";
   html += "img{width:320px;height:240px;border:2px solid #22d3ee;border-radius:8px;background:#000}";
   html += "button{background:#0284c7;color:#fff;border:none;padding:10px 16px;margin:4px;border-radius:6px;font-weight:bold;cursor:pointer}";
   html += "button:active{background:#38bdf8}</style></head><body>";
-  html += "<div class='card'><h3>NAKSHATRA ESP32-S3 #1 (OV7670 + 2x BTS7960B + FS-iA9B)</h3>";
+  html += "<div class='card'><h3>NAKSHATRA ESP32-S3 #1 (OV7670 + 1x L298N + FS-iA9B)</h3>";
   html += "<img id='cam' src='/capture'><br>";
   html += "<div id='stat' style='font-size:12px;color:#34d399;margin:8px 0'>Loading telemetry...</div>";
   html += "<div><button onmousedown=\"cmd(0.7,0.7)\" onmouseup=\"cmd(0,0)\">▲ FORWARD</button></div>";
@@ -470,8 +492,8 @@ void handleRootDashboard() {
   html += "<script>const img=document.getElementById('cam');";
   html += "function loopCam(){img.src='/capture?t='+Date.now();}";
   html += "img.onload=()=>setTimeout(loopCam,80);img.onerror=()=>setTimeout(loopCam,300);";
-  html += "function cmd(l,r){fetch('/cmd?l='+l+'&r='+r+'&mode=manual').then(r=>r.json()).then(d=>{document.getElementById('stat').innerText='L-PWM:'+d.left_pwm+' R-PWM:'+d.right_pwm+' | Mode:'+d.control_source+' | CH1:'+d.rc_ch1_steer;});}";
-  html += "setInterval(()=>{fetch('/status').then(r=>r.json()).then(d=>{document.getElementById('stat').innerText='L-PWM:'+d.left_pwm+' R-PWM:'+d.right_pwm+' | Mode:'+d.control_source+' | CH1:'+d.rc_ch1_steer;});},600);";
+  html += "function cmd(l,r){fetch('/cmd?l='+l+'&r='+r+'&mode=manual').then(r=>r.json()).then(d=>{document.getElementById('stat').innerText='L298N L-PWM:'+d.left_pwm+' R-PWM:'+d.right_pwm+' | Mode:'+d.control_source+' | CH1:'+d.rc_ch1_steer;});}";
+  html += "setInterval(()=>{fetch('/status').then(r=>r.json()).then(d=>{document.getElementById('stat').innerText='L298N L-PWM:'+d.left_pwm+' R-PWM:'+d.right_pwm+' | Mode:'+d.control_source+' | CH1:'+d.rc_ch1_steer;});},600);";
   html += "</script></body></html>";
   server.send(200, "text/html", html);
 }
@@ -524,7 +546,7 @@ void loop() {
 
   if (ibusSignalActive && rcChannels[5] > 1700) {
     activeControlSource = CTRL_ESTOP;
-    setBTS7960Motors(0.0f, 0.0f, true);
+    setL298NMotors(0.0f, 0.0f, true);
     return;
   }
 
@@ -540,14 +562,14 @@ void loop() {
 
     float leftOut  = (throttle + steer * 0.75f) * speedLim;
     float rightOut = (throttle - steer * 0.75f) * speedLim;
-    setBTS7960Motors(leftOut, rightOut, false);
+    setL298NMotors(leftOut, rightOut, false);
   }
   else {
     if (millis() - lastWebCmdMs > 1500) {
-      setBTS7960Motors(0.0f, 0.0f, false);
+      setL298NMotors(0.0f, 0.0f, false);
     } else {
       bool isEstop = (activeControlSource == CTRL_ESTOP);
-      setBTS7960Motors(cmdLeftNormalized, cmdRightNormalized, isEstop);
+      setL298NMotors(cmdLeftNormalized, cmdRightNormalized, isEstop);
     }
   }
 
