@@ -142,6 +142,49 @@
     </div>
   </div>
 
+  <!-- Physical Hardware Bridge Bar: ESP32-S3 #1 (OV7670 + 2x BTS7960B + FlySky FS-iA9B) & ESP32-S3-CAM #2 -->
+  <div class="bg-slate-900/95 border border-cyan-500/40 rounded-xl px-3.5 py-2 mb-3 flex flex-wrap items-center justify-between gap-2 shadow-lg text-xs font-mono">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-600 font-bold text-[10px]">⚡ ESP32-S3 HARDWARE LINK</span>
+      <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-slate-800">
+        <span class="text-slate-400 text-[10px]">ESP1 (OV7670+BTS7960+FS-iA9B):</span>
+        <input id="inp-esp1-ip" type="text" value="192.168.4.1" class="bg-slate-900 text-cyan-300 border border-slate-700 rounded px-1.5 py-0.5 w-28 text-[10px] focus:outline-none focus:border-cyan-400" />
+      </div>
+      <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-slate-800">
+        <span class="text-slate-400 text-[10px]">ESP2 (S3-CAM):</span>
+        <input id="inp-esp2-ip" type="text" value="192.168.1.102" class="bg-slate-900 text-cyan-300 border border-slate-700 rounded px-1.5 py-0.5 w-28 text-[10px] focus:outline-none focus:border-cyan-400" />
+      </div>
+      <button id="btn-hw-sync" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-400 flex items-center gap-1 shadow">
+        <span>🔗</span>
+        <span id="lbl-hw-sync">Sync Real Rover: OFF</span>
+      </button>
+      <button id="btn-cam-source" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-600/60 flex items-center gap-1 shadow">
+        <span>📷</span>
+        <span id="lbl-cam-source">Feed: 3D Stereo Sim</span>
+      </button>
+      <button id="btn-flysky-mode" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-slate-800 hover:bg-amber-600 text-amber-300 hover:text-slate-950 border border-amber-500/70 flex items-center gap-1 shadow" title="Toggle FlySky FS-iA9B Manual Override (GPIO 14 i-BUS CH1/CH2/CH5)">
+        <span>📻</span>
+        <span id="lbl-flysky-mode">FlySky FS-iA9B (GPIO14): AUTO (SwA=1000)</span>
+      </button>
+    </div>
+
+    <!-- Live BTS7960B (Left 3 Motors / Right 3 Motors) & FlySky Telemetry Readout -->
+    <div class="flex flex-wrap items-center gap-2 text-[10px]">
+      <div class="bg-slate-950 px-2 py-1 rounded border border-slate-800">
+        <span class="text-slate-400">L-BTS7960 (3 Mot GPIO1/2):</span>
+        <span id="lbl-bts-left" class="text-emerald-400 font-bold ml-1">RPWM:0 LPWM:0</span>
+      </div>
+      <div class="bg-slate-950 px-2 py-1 rounded border border-slate-800">
+        <span class="text-slate-400">R-BTS7960 (3 Mot GPIO40/41):</span>
+        <span id="lbl-bts-right" class="text-emerald-400 font-bold ml-1">RPWM:0 LPWM:0</span>
+      </div>
+      <div class="bg-slate-950 px-2 py-1 rounded border border-slate-800">
+        <span class="text-slate-400">FS-iA9B CH1/CH2:</span>
+        <span id="lbl-ibus-sticks" class="text-amber-300 font-bold ml-1">1500 / 1500 µs</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Grid -->
   <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
@@ -206,13 +249,18 @@
             <span id="pip-fps-badge" class="text-[9px] text-emerald-400 font-mono">30 FPS • 72° FOV</span>
           </div>
 
-          <!-- Dual Stereo Camera Canvas (CAM-L and CAM-R Viewports) -->
+          <!-- Dual Stereo Camera Canvas (CAM-L: ESP32-S3 OV7670 & CAM-R: ESP32-S3-CAM Viewports) -->
           <div class="relative w-[302px] h-[96px] rounded border border-slate-800 bg-[#030611] overflow-hidden">
             <canvas id="pipCanvas" width="302" height="96" class="block"></canvas>
+            <!-- Live Hardware Camera Stream Overlay (Visible when Feed = Live ESP32 Cameras) -->
+            <div id="hw-cam-streams" class="hidden absolute inset-0 grid grid-cols-2 bg-slate-950">
+              <img id="hw-cam-left-img" alt="ESP32-S3 #1 OV7670 Live" class="w-[149px] h-[96px] object-cover border-r border-cyan-500/40" />
+              <img id="hw-cam-right-img" alt="ESP32-S3-CAM #2 Live" class="w-[149px] h-[96px] object-cover" />
+            </div>
             <canvas id="pipOverlayCanvas" width="302" height="96" class="absolute inset-0 pointer-events-none block"></canvas>
             <!-- Camera Viewport Labels -->
-            <div class="absolute top-1 left-1.5 text-[7.5px] font-bold text-cyan-300/90 bg-slate-950/70 px-1 py-0.5 rounded border border-cyan-900/50">CAM-L (PORT)</div>
-            <div class="absolute top-1 right-1.5 text-[7.5px] font-bold text-cyan-300/90 bg-slate-950/70 px-1 py-0.5 rounded border border-cyan-900/50">CAM-R (STBD)</div>
+            <div id="lbl-cam-left-tag" class="absolute top-1 left-1.5 text-[7.5px] font-bold text-cyan-300/90 bg-slate-950/70 px-1 py-0.5 rounded border border-cyan-900/50">CAM-L (OV7670)</div>
+            <div id="lbl-cam-right-tag" class="absolute top-1 right-1.5 text-[7.5px] font-bold text-cyan-300/90 bg-slate-950/70 px-1 py-0.5 rounded border border-cyan-900/50">CAM-R (S3-CAM)</div>
             <!-- Center Split Line Indicator -->
             <div class="absolute top-0 bottom-0 left-1/2 w-[1px] bg-cyan-500/40 pointer-events-none"></div>
           </div>
@@ -5103,7 +5151,23 @@
       let leftCmd = 0;
       let rightCmd = 0;
 
-      if (isAIMode) {
+      // Priority 1: FlySky FS-iA9B Manual Override (GPIO 14 i-BUS CH5 SwA > 1500 us)
+      if (typeof hwBridgeState !== 'undefined' && hwBridgeState.flyskyOverrideActive) {
+        if (hwBridgeState.ibusSignalActive) {
+          const steer = Math.abs(hwBridgeState.rcCh1Steer - 1500) < 25 ? 0 : (hwBridgeState.rcCh1Steer - 1500) / 500.0;
+          const throt = Math.abs(hwBridgeState.rcCh2Throttle - 1500) < 25 ? 0 : (hwBridgeState.rcCh2Throttle - 1500) / 500.0;
+          leftCmd = Math.max(-1.0, Math.min(1.0, throt + steer * 0.75));
+          rightCmd = Math.max(-1.0, Math.min(1.0, throt - steer * 0.75));
+        } else {
+          // Local keyboard / stick emulation when testing FlySky Override on laptop
+          if (keys['w'] || keys['arrowup']) { leftCmd += 1.0; rightCmd += 1.0; }
+          if (keys['s'] || keys['arrowdown']) { leftCmd -= 0.85; rightCmd -= 0.85; }
+          if (keys['a'] || keys['arrowleft']) { leftCmd -= 0.68; rightCmd += 0.68; }
+          if (keys['d'] || keys['arrowright']) { leftCmd += 0.68; rightCmd -= 0.68; }
+          hwBridgeState.rcCh2Throttle = Math.round(1500 + ((leftCmd + rightCmd) * 0.5) * 500);
+          hwBridgeState.rcCh1Steer = Math.round(1500 + ((leftCmd - rightCmd) * 0.5) * 500);
+        }
+      } else if (isAIMode) {
         const cmd = computeLowLevelPPO(rays);
         leftCmd = cmd.left;
         rightCmd = cmd.right;
@@ -5141,6 +5205,11 @@
             updateDemoBadgeUI();
           }
         }
+      }
+
+      // Update Live BTS7960B Dual H-Bridge PWM Telemetry & Stream to ESP32-S3 #1 if Hardware Sync is ON
+      if (typeof updateHardwareBridgeTick === 'function') {
+        updateHardwareBridgeTick(leftCmd, rightCmd, currentTime);
       }
 
       // Buffer live episode step for continuous self-learning & policy evolution
@@ -6433,6 +6502,144 @@
     document.querySelectorAll('.btn-preset').forEach(btn => {
       btn.addEventListener('click', () => triggerLLMMissionUpdate(btn.getAttribute('data-cmd')));
     });
+
+    // =========================================================================
+    // PHYSICAL ESP32-S3 HARDWARE BRIDGE: OV7670 + S3-CAM + 2x BTS7960B + FLYSKY FS-iA9B
+    // =========================================================================
+    const hwBridgeState = {
+      syncEnabled: false,
+      liveCameraFeed: false,
+      flyskyOverrideActive: false,
+      ibusSignalActive: false,
+      rcCh1Steer: 1500,
+      rcCh2Throttle: 1500,
+      rcCh5Mode: 1000,
+      leftPWM: 0,
+      rightPWM: 0,
+      lastCmdSentMs: 0,
+      lastCamRefreshMs: 0,
+      inFlightCmd: false
+    };
+
+    function updateHardwareBridgeTick(leftCmd, rightCmd, currentTime) {
+      const lClamped = Math.max(-1.0, Math.min(1.0, leftCmd));
+      const rClamped = Math.max(-1.0, Math.min(1.0, rightCmd));
+      const lPwm = Math.round(lClamped * 255);
+      const rPwm = Math.round(rClamped * 255);
+      hwBridgeState.leftPWM = lPwm;
+      hwBridgeState.rightPWM = rPwm;
+
+      const lRpwm = lPwm >= 0 ? lPwm : 0;
+      const lLpwm = lPwm < 0 ? -lPwm : 0;
+      const rRpwm = rPwm >= 0 ? rPwm : 0;
+      const rLpwm = rPwm < 0 ? -rPwm : 0;
+
+      const elBtsL = document.getElementById('lbl-bts-left');
+      if (elBtsL) elBtsL.textContent = `RPWM:${lRpwm} LPWM:${lLpwm}`;
+      const elBtsR = document.getElementById('lbl-bts-right');
+      if (elBtsR) elBtsR.textContent = `RPWM:${rRpwm} LPWM:${rLpwm}`;
+      const elSticks = document.getElementById('lbl-ibus-sticks');
+      if (elSticks) elSticks.textContent = `${hwBridgeState.rcCh1Steer} / ${hwBridgeState.rcCh2Throttle} µs`;
+
+      // Stream motor commands to ESP32-S3 #1 at ~10 Hz when Sync Real Rover is ON
+      if (hwBridgeState.syncEnabled && !hwBridgeState.inFlightCmd && (currentTime - hwBridgeState.lastCmdSentMs > 95)) {
+        hwBridgeState.lastCmdSentMs = currentTime;
+        hwBridgeState.inFlightCmd = true;
+        const esp1Ip = (document.getElementById('inp-esp1-ip')?.value || '192.168.4.1').trim();
+        const modeParam = hwBridgeState.flyskyOverrideActive ? 'manual' : (isAIMode ? 'auto' : 'manual');
+        fetch(`http://${esp1Ip}/cmd?l=${lClamped.toFixed(3)}&r=${rClamped.toFixed(3)}&wp=${currentWaypointIndex}&mode=${modeParam}`, {
+          method: 'GET',
+          mode: 'cors',
+          signal: AbortSignal.timeout ? AbortSignal.timeout(450) : undefined
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (typeof data.rc_ch1_steer === 'number') hwBridgeState.rcCh1Steer = data.rc_ch1_steer;
+            if (typeof data.rc_ch2_throttle === 'number') hwBridgeState.rcCh2Throttle = data.rc_ch2_throttle;
+            if (typeof data.rc_ch5_mode === 'number') {
+              hwBridgeState.rcCh5Mode = data.rc_ch5_mode;
+              hwBridgeState.ibusSignalActive = !!data.ibus_active;
+              if (data.ibus_active && data.rc_ch5_mode > 1500 && !hwBridgeState.flyskyOverrideActive) {
+                setFlySkyOverrideMode(true, true);
+              }
+            }
+          })
+          .catch(() => {})
+          .finally(() => { hwBridgeState.inFlightCmd = false; });
+      }
+
+      // Refresh live camera frames from ESP32-S3 #1 (OV7670) and ESP32-S3-CAM #2 when Live Feed is active
+      if (hwBridgeState.liveCameraFeed && (currentTime - hwBridgeState.lastCamRefreshMs > 180)) {
+        hwBridgeState.lastCamRefreshMs = currentTime;
+        const esp1Ip = (document.getElementById('inp-esp1-ip')?.value || '192.168.4.1').trim();
+        const esp2Ip = (document.getElementById('inp-esp2-ip')?.value || '192.168.1.102').trim();
+        const imgL = document.getElementById('hw-cam-left-img');
+        const imgR = document.getElementById('hw-cam-right-img');
+        const ts = Date.now();
+        if (imgL) imgL.src = `http://${esp1Ip}/capture?t=${ts}`;
+        if (imgR) imgR.src = `http://${esp2Ip}/capture?t=${ts}`;
+      }
+    }
+
+    function setFlySkyOverrideMode(enable, fromHardwareSwitch = false) {
+      hwBridgeState.flyskyOverrideActive = enable;
+      hwBridgeState.rcCh5Mode = enable ? 2000 : 1000;
+      const btn = document.getElementById('btn-flysky-mode');
+      const lbl = document.getElementById('lbl-flysky-mode');
+      if (enable) {
+        if (lbl) lbl.textContent = "FlySky FS-iA9B (GPIO14): MANUAL OVERRIDE (SwA=2000)";
+        if (btn) btn.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-amber-500 text-slate-950 border border-amber-300 ring-2 ring-amber-400 flex items-center gap-1 shadow";
+        showBanner(`📻 FLYSKY FS-iA9B MANUAL OVERRIDE ACTIVE (${fromHardwareSwitch ? 'Hardware SwA Switch on GPIO 14' : 'Operator Override — Drive with FlySky Sticks or WASD/Arrows'})`, "bg-amber-950 text-amber-300 border-amber-500 ring-2 ring-amber-400");
+      } else {
+        if (lbl) lbl.textContent = "FlySky FS-iA9B (GPIO14): AUTO (SwA=1000)";
+        if (btn) btn.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-slate-800 hover:bg-amber-600 text-amber-300 hover:text-slate-950 border border-amber-500/70 flex items-center gap-1 shadow";
+        showBanner("🤖 AUTONOMOUS PRESCRIBED RED PATH RESUMED (FlySky SwA=1000)", "bg-emerald-950 text-emerald-300 border-emerald-500");
+      }
+    }
+
+    const btnHwSync = document.getElementById('btn-hw-sync');
+    if (btnHwSync) {
+      btnHwSync.addEventListener('click', () => {
+        hwBridgeState.syncEnabled = !hwBridgeState.syncEnabled;
+        const lbl = document.getElementById('lbl-hw-sync');
+        if (hwBridgeState.syncEnabled) {
+          if (lbl) lbl.textContent = "Sync Real Rover: LIVE";
+          btnHwSync.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-emerald-500 text-slate-950 border border-emerald-300 ring-2 ring-emerald-400 flex items-center gap-1 shadow";
+          const esp1Ip = (document.getElementById('inp-esp1-ip')?.value || '192.168.4.1').trim();
+          showBanner(`🔗 LIVE HARDWARE SYNC ACTIVE: Streaming BTS7960B PWM & 5×7 Tile Red Path to ESP32-S3 (${esp1Ip})!`, "bg-emerald-950 text-emerald-300 border-emerald-400 ring-2 ring-emerald-400");
+        } else {
+          if (lbl) lbl.textContent = "Sync Real Rover: OFF";
+          btnHwSync.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-400 flex items-center gap-1 shadow";
+          showBanner("Hardware Sync Paused (Simulation running standalone)", "bg-slate-900 text-slate-300 border-slate-700");
+        }
+      });
+    }
+
+    const btnCamSource = document.getElementById('btn-cam-source');
+    if (btnCamSource) {
+      btnCamSource.addEventListener('click', () => {
+        hwBridgeState.liveCameraFeed = !hwBridgeState.liveCameraFeed;
+        const lbl = document.getElementById('lbl-cam-source');
+        const hwDiv = document.getElementById('hw-cam-streams');
+        if (hwBridgeState.liveCameraFeed) {
+          if (lbl) lbl.textContent = "Feed: Live ESP32 Cams (OV7670+S3)";
+          if (hwDiv) hwDiv.classList.remove('hidden');
+          btnCamSource.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-cyan-500 text-slate-950 border border-cyan-300 ring-2 ring-cyan-400 flex items-center gap-1 shadow";
+          showBanner("📷 LIVE ESP32-S3 CAMERA STREAM ACTIVE: CAM-L (OV7670 GPIO 4..18) + CAM-R (ESP32-S3-CAM)", "bg-cyan-950 text-cyan-300 border-cyan-400");
+        } else {
+          if (lbl) lbl.textContent = "Feed: 3D Stereo Sim";
+          if (hwDiv) hwDiv.classList.add('hidden');
+          btnCamSource.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-600/60 flex items-center gap-1 shadow";
+        }
+      });
+    }
+
+    const btnFlysky = document.getElementById('btn-flysky-mode');
+    if (btnFlysky) {
+      btnFlysky.addEventListener('click', () => {
+        setFlySkyOverrideMode(!hwBridgeState.flyskyOverrideActive, false);
+      });
+    }
 
     // Initialize UI labels from restored permanent state & Start 3D Engine
     document.getElementById('lbl-play-session').textContent = `Play #${playNumber}`;
