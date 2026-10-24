@@ -27,14 +27,14 @@
           3D Autonomous Lunar Rover Simulator — Nakshatra Physical Arena
         </h1>
         <span class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded font-mono">
-          Nakshatra Hackathon Map (1:1 Physical Layout)
+          5×7 Tiles @ 62×62cm (3.10m × 4.34m Exact 1:1 Scale)
         </span>
-        <span class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2 py-0.5 rounded font-mono">
-          NAKSHATRA Ramp • Ring Crater • 2 Basalt Gravel Beds • Brown Sand Strip • 48 Slalom Cobbles
+        <span class="text-xs bg-rose-950 text-rose-300 border border-rose-700 px-2 py-0.5 rounded font-mono">
+          Prescribed Red Loop Path: NAKSHATRA Ramp (Start) → Sand → Top Gravel → Ring Crater → Central Slalom → Ramp (End)
         </span>
       </div>
       <p class="text-xs text-slate-400 mt-0.5">
-        Authentic Physical Arena Replica • Dual Stereo Cams (B=76mm) • Sweeping Dual-ToF LiDAR • PCA Traversability
+        1:1 Physical Arena (5×7 Ceramic Tiles, 62×62cm each) • Dual Stereo Cams (B=76mm) • Sweeping Dual-ToF LiDAR • PCA Traversability
       </p>
     </div>
 
@@ -156,7 +156,7 @@
             <span id="mode-text">Human Teacher Mode (WASD)</span>
           </button>
           <button id="btn-scramble" class="px-2.5 py-1.5 rounded-md text-xs font-bold transition bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
-            🎲 Scramble 20m Map
+            🎲 Reset 5×7 Tile Arena
           </button>
           <button id="btn-reset-pos" class="px-2.5 py-1.5 rounded-md text-xs font-bold transition bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
             🔄 Respawn Rover
@@ -173,21 +173,20 @@
           </button>
         </div>
 
-        <!-- Tactical Mini-Map Radar (20m x 20m Overview) -->
+        <!-- Tactical Mini-Map Radar (5x7 Tiles = 3.10m x 4.34m Overview) -->
         <div class="absolute top-3 right-3 bg-slate-950/90 backdrop-blur border border-slate-700/80 rounded-lg p-2 text-[10px] font-mono z-10 flex flex-col items-center shadow-xl pointer-events-auto">
           <div class="flex justify-between w-full text-slate-400 mb-1 text-[9px] uppercase tracking-wider font-bold">
-            <span>Expedition Radar</span>
-            <span class="text-cyan-400">20m × 20m</span>
+            <span>5×7 Tile Radar</span>
+            <span class="text-cyan-400">3.10m × 4.34m</span>
           </div>
-          <canvas id="radarCanvas" width="130" height="130" class="rounded border border-slate-800 bg-[#070b14]"></canvas>
+          <canvas id="radarCanvas" width="125" height="175" class="rounded border border-slate-800 bg-[#070b14]"></canvas>
           <div class="text-[9px] text-slate-400 mt-1 flex flex-wrap justify-between w-full gap-x-1.5 gap-y-0.5">
             <span class="text-emerald-400">● Rover</span>
-            <span class="text-yellow-400">★ Goal</span>
+            <span class="text-rose-400">━ Red Path</span>
+            <span class="text-yellow-400">★ WP</span>
             <span class="text-sky-400">◯ Crater</span>
             <span class="text-amber-400">● Rock</span>
-            <span class="text-purple-400">▪ Trail</span>
-            <span class="text-indigo-400">◇ Route</span>
-            <span class="text-rose-400">✕ Crash</span>
+            <span class="text-slate-300">▦ 62cm Tile</span>
           </div>
         </div>
 
@@ -277,7 +276,7 @@
 
         <!-- Notification Banner -->
         <div id="status-banner" class="absolute bottom-12 right-3 px-3 py-1 rounded text-xs font-bold font-mono transition-opacity duration-300 bg-emerald-950 text-emerald-300 border border-emerald-700 z-10">
-          20M LUNAR EXPEDITION IN PROGRESS
+          5×7 TILE NAKSHATRA PATH MISSION IN PROGRESS
         </div>
       </div>
 
@@ -288,8 +287,8 @@
           <span>Manual steering (when in Manual mode)</span>
         </div>
         <div class="flex items-center gap-4">
-          <span>Click anywhere on 20m lunar terrain to relocate Waypoint Target</span>
-          <span class="text-cyan-400 font-semibold">• 400 m² Expedition Area Active</span>
+          <span>Following Exact Red Loop Path from Photo (Start: Ramp Right → End: Ramp Left)</span>
+          <span class="text-cyan-400 font-semibold">• 5×7 Tiles (62×62cm each = 3.10m × 4.34m)</span>
         </div>
       </div>
     </div>
@@ -301,7 +300,7 @@
       <div class="glass-card rounded-xl p-3.5 shadow-lg border border-slate-800">
         <div class="text-xs uppercase text-slate-400 font-bold tracking-wider mb-2 flex items-center justify-between">
           <span>Hackathon Criteria</span>
-          <span class="text-cyan-400 text-[10px]">20M EXPEDITION</span>
+          <span class="text-cyan-400 text-[10px]">5×7 TILES (3.10×4.34m)</span>
         </div>
 
         <div class="space-y-2.5">
@@ -401,8 +400,8 @@
             <span class="text-emerald-400 font-bold">✓ 22.0 cm</span>
           </div>
           <div class="flex justify-between text-slate-300">
-            <span>Arena Size (Scaled Expanse):</span>
-            <span class="text-cyan-400 font-bold">✓ 20.0 × 20.0 m</span>
+            <span>Arena Grid (5×7 @ 62×62cm):</span>
+            <span class="text-cyan-400 font-bold">✓ 3.10 × 4.34 m</span>
           </div>
         </div>
       </div>
@@ -575,10 +574,60 @@
   <!-- Three.js 3D WebGL Engine Script -->
   <script>
     const container = document.getElementById('webgl-container');
-    const ARENA_SIZE_M = 20.0; // Scaled up to 20m x 20m (400 m² expansive lunar territory)
+    // EXACT 1:1 NAKSHATRA PHYSICAL ARENA DIMENSIONS: 5 x 7 Floor Tiles @ 62cm x 62cm per Tile
+    const TILE_SIZE_M = 0.62;                         // 62cm x 62cm ceramic floor tile
+    const ARENA_TILES_X = 5;                          // 5 tiles wide (East-West)
+    const ARENA_TILES_Y = 7;                          // 7 tiles long (South-North)
+    const ARENA_WIDTH_M = ARENA_TILES_X * TILE_SIZE_M;  // 3.10 meters (x in [-1.55, +1.55])
+    const ARENA_LENGTH_M = ARENA_TILES_Y * TILE_SIZE_M; // 4.34 meters (y in [-2.17, +2.17])
+    const ARENA_HALF_X = ARENA_WIDTH_M / 2.0;         // 1.55 meters
+    const ARENA_HALF_Y = ARENA_LENGTH_M / 2.0;        // 2.17 meters
+    const ARENA_SIZE_M = ARENA_LENGTH_M;              // 4.34m reference scale
+
+    // EXACT PRESCRIBED RED MISSION PATH FROM WhatsApp Image 2026-10-24 at 1.47.11 PM.jpeg
+    // Traces the exact red loop from "Start" (Right 'RA' side of NAKSHATRA ramp) ->
+    // Up Right Brown Sand Strip -> Left across Top Dark Basalt Gravel Strip ->
+    // Down through Center of Giant Ring Crater & Left White Sheet ->
+    // U-Turn Right & Up through Lower Dark Basalt Gravel Patch & Central Rock Slalom ->
+    // Clockwise U-Turn at top of Central Rock Slalom -> Down Sand/Newspaper border ->
+    // Back onto "end" (Left 'NA' side of NAKSHATRA ramp)!
+    const NAKSHATRA_PRESCRIBED_PATH = [
+      { x: 1.14,  y: -1.78, label: "START (NAKSHATRA Ramp 'RA')" },
+      { x: 1.08,  y: -1.42, label: "Ramp Egress onto Newspaper" },
+      { x: 1.00,  y: -0.95, label: "Kinder Bueno Newspaper Crossing" },
+      { x: 0.94,  y: -0.38, label: "Right Brown Sand Strip Entry" },
+      { x: 0.88,  y: 0.22,  label: "Right Brown Sand Strip Mid-South" },
+      { x: 0.80,  y: 0.82,  label: "Right Brown Sand Strip Mid-North" },
+      { x: 0.66,  y: 1.42,  label: "Brown Sand Exit to Cardboard" },
+      { x: 0.42,  y: 1.72,  label: "Top Dark Basalt Gravel East" },
+      { x: -0.05, y: 1.74,  label: "Top Dark Basalt Gravel Center" },
+      { x: -0.52, y: 1.70,  label: "Top Dark Basalt Gravel West" },
+      { x: -0.68, y: 1.42,  label: "Top-Left Newspaper Turn South" },
+      { x: -0.68, y: 0.92,  label: "Giant Ring Crater North Rim" },
+      { x: -0.68, y: 0.35,  label: "Giant Ring Crater Center Bowl" },
+      { x: -0.68, y: -0.16, label: "Giant Ring Crater South Rim" },
+      { x: -0.68, y: -0.52, label: "Tilted Times Global Newspaper" },
+      { x: -0.68, y: -1.10, label: "Left White Sheet Corridor" },
+      { x: -0.62, y: -1.62, label: "Bottom-Left White Sheet Corner" },
+      { x: -0.32, y: -1.74, label: "Bottom-Left U-Turn Apex" },
+      { x: 0.04,  y: -1.56, label: "Lower Basalt Patch Approach" },
+      { x: 0.06,  y: -1.10, label: "Lower Dark Basalt Gravel South" },
+      { x: 0.03,  y: -0.52, label: "Lower Dark Basalt Gravel North" },
+      { x: -0.02, y: 0.05,  label: "Central Newspaper Slalom South" },
+      { x: -0.05, y: 0.62,  label: "Central Newspaper Slalom North" },
+      { x: -0.02, y: 0.98,  label: "Central Slalom Top U-Turn Left" },
+      { x: 0.22,  y: 1.02,  label: "Central Slalom Top U-Turn Apex" },
+      { x: 0.34,  y: 0.78,  label: "Return Corridor North" },
+      { x: 0.38,  y: 0.18,  label: "Return Corridor Mid (Sand Border)" },
+      { x: 0.48,  y: -0.48, label: "Return Corridor South" },
+      { x: 0.60,  y: -1.18, label: "NAKSHATRA Ramp Left Approach" },
+      { x: 0.68,  y: -1.78, label: "END (NAKSHATRA Ramp 'NA')" }
+    ];
+    let currentWaypointIndex = 1;
+    let prescribedPathGroup = null;
 
     // Simulation Physics & 4-Way Brain State ('manual' | 'llm' | 'jev' | 'collab')
-    let activeBrainMode = 'collab'; // Default to Dual-AI Consensus for autonomous continuous 2000-win marathon!
+    let activeBrainMode = 'collab'; // Default to Dual-AI Consensus for autonomous continuous mission!
     let isAIMode = true;
     const JEV_API_URL = 'https://jevmodel.org/v1/systemone';
     const JEV_API_KEY = 'sk-c83fed6c369a5302cca4440a49099265125e9d36dcef188d0c6aca71fc460b0c';
@@ -598,8 +647,8 @@
     // Mission Watchdog & Autonomous Anti-Stagnation Circuit Breaker State
     let attemptStartTime = performance.now();
     const stuckWatchdog = {
-      anchorX: -7.8,
-      anchorY: -7.8,
+      anchorX: 1.14,
+      anchorY: -1.78,
       anchorTime: performance.now(),
       escapeAttempts: 0,
       minDistToGoal: 999,
@@ -609,25 +658,25 @@
     let showRays = true;
     let craters = [];
     let boulders = [];
-    let goal = { x: 7.6, y: 7.8 };
-    let startPos = { x: -7.8, y: -7.8 };
+    let startPos = { x: 1.14, y: -1.78 };
+    let goal = { x: 0.68, y: -1.78 };
     let trajectory = [];
     let pathLength = 0;
     let craterAvoidanceCount = 0;
     let boulderAvoidanceCount = 0;
 
     let rover = {
-      x: -7.8,
-      y: -7.8,
+      x: 1.14,
+      y: -1.78,
       z: 0.0,
-      yaw: 0.8,
+      yaw: Math.PI / 2,
       pitch: 0.0,
       roll: 0.0,
       vx: 0.0,
       vy: 0.0,
       vLinear: 0.0,
       omega: 0.0,
-      slip: 0.15,
+      slip: 0.02,
       width: 0.20,
       length: 0.28,
       clearance_mm: 20.0,
@@ -638,9 +687,9 @@
 
     let llmState = {
       hazardLevel: "NOMINAL",
-      reasoning: "Traversability clear: Forward stereo fan returns nominal ground profile on 20m terrain. Continuing toward target waypoint.",
-      action: "CONTINUE_EXPEDITION",
-      downlink: "20m expedition progressing autonomously; zero intervention required.",
+      reasoning: "Traversability clear: Following prescribed Nakshatra Red Loop Path across 5x7 tile arena (3.10m x 4.34m) with active Dual-ToF LiDAR & Stereo Vision.",
+      action: "FOLLOW_NAKSHATRA_RED_PATH",
+      downlink: "5x7 tile Nakshatra arena mission progressing autonomously along prescribed trajectory.",
       lastEvaluationTime: 0,
       packetIndex: 94
     };
@@ -705,124 +754,173 @@
     }
 
     // =========================================================================
-    // NAKSHATRA HACKATHON PHYSICAL ARENA 1:1 ZONE & TOPOGRAPHY ENGINE
+    // NAKSHATRA HACKATHON 5x7 TILE (3.10m x 4.34m) 1:1 ZONE & TOPOGRAPHY ENGINE
+    // Every zone mapped directly from the 11 photos in "New folder (2)"
     // =========================================================================
     function getNakshatraZoneWeights(x, y) {
-      const edgeNoise = 0.24 * (fbm(x * 0.9 + 5.1, y * 0.9 - 3.7, 2) - 0.5);
+      const edgeNoise = 0.035 * (fbm(x * 4.5 + 5.1, y * 4.5 - 3.7, 2) - 0.5);
 
-      // 1. Top (North) Wide Brown Fine Sand & Soil Strip: x in [-5.8, +2.6], y in [+2.7, +7.8]
-      const sandX = smoothstep(-6.0, -5.5, x + edgeNoise) * (1.0 - smoothstep(2.3, 2.8, x + edgeNoise));
-      const sandY = smoothstep(2.5, 3.0, y + edgeNoise) * (1.0 - smoothstep(7.5, 8.1, y + edgeNoise));
-      const topBrownSand = sandX * sandY;
+      // 1. Right-Side (East) Long Brown Fine Sand & Soil Strip (Columns 4-5, Rows 3-6):
+      // x in [+0.42, +1.46], y in [-0.45, +1.45]
+      const sandX = smoothstep(0.39, 0.46, x + edgeNoise) * (1.0 - smoothstep(1.40, 1.48, x + edgeNoise));
+      const sandY = smoothstep(-0.48, -0.38, y + edgeNoise) * (1.0 - smoothstep(1.38, 1.48, y + edgeNoise));
+      const rightBrownSand = sandX * sandY;
 
-      // 2. Far-Left (West) Cardboard Base & Dark Blue-Grey Basalt Gravel Strip: x in [-9.4, -5.5], y in [-4.0, +6.8]
-      const cardX = smoothstep(-9.6, -9.2, x) * (1.0 - smoothstep(-5.6, -5.2, x + edgeNoise * 0.5));
-      const cardY = smoothstep(-4.3, -3.8, y) * (1.0 - smoothstep(6.5, 7.0, y));
-      const leftCardboard = cardX * cardY;
+      // 2. Top (North) Corrugated Brown Cardboard Sheet & Dark Blue-Grey Crushed Basalt Gravel Strip (Rows 6-7):
+      // Cardboard base: x in [-0.66, +1.18], y in [+1.38, +2.14]
+      const cardX = smoothstep(-0.68, -0.62, x) * (1.0 - smoothstep(1.14, 1.20, x));
+      const cardY = smoothstep(1.36, 1.42, y) * (1.0 - smoothstep(2.10, 2.16, y));
+      const topCardboard = cardX * cardY;
 
-      const leftGravX = smoothstep(-9.2, -8.8, x + edgeNoise) * (1.0 - smoothstep(-6.0, -5.6, x + edgeNoise));
-      const leftGravY = smoothstep(-3.8, -3.2, y + edgeNoise) * (1.0 - smoothstep(6.1, 6.6, y + edgeNoise));
-      const leftBasaltGravel = leftGravX * leftGravY;
+      // Dark blue-grey crushed basalt gravel on cardboard: x in [-0.58, +0.98], y in [+1.48, +2.02]
+      const topGravX = smoothstep(-0.60, -0.52, x + edgeNoise) * (1.0 - smoothstep(0.92, 1.00, x + edgeNoise));
+      const topGravY = smoothstep(1.45, 1.53, y + edgeNoise) * (1.0 - smoothstep(1.96, 2.04, y + edgeNoise));
+      const topBasaltGravel = topGravX * topGravY;
 
-      // 3. Middle-Right (East) Dark Blue-Grey Basalt Gravel Patch (below NAKSHATRA Ramp): x in [+1.8, +6.2], y in [-4.5, +0.9]
-      // Includes the characteristic V-shaped lower-left notch seen in the physical arena photos
-      const notchIndent = 0.75 * Math.exp(-Math.pow((y + 1.8) / 0.85, 2));
-      const rightMinX = 1.85 + notchIndent;
-      const rightGravX = smoothstep(rightMinX - 0.25, rightMinX + 0.20, x + edgeNoise) * (1.0 - smoothstep(5.9, 6.4, x + edgeNoise));
-      const rightGravY = smoothstep(-4.6, -4.1, y + edgeNoise) * (1.0 - smoothstep(0.6, 1.1, y + edgeNoise));
-      const rightBasaltGravel = rightGravX * rightGravY;
+      // 3. Lower-Center Dark Blue-Grey Crushed Basalt Gravel Patch (Rows 2-3, Columns 3-4):
+      // Main body x in [-0.26, +0.68], y in [-1.36, -0.36], with upper-left triangular peak extending to y = -0.22 at x = -0.06
+      const peakLift = 0.16 * Math.exp(-Math.pow((x + 0.06) / 0.14, 2));
+      const lowGravX = smoothstep(-0.28, -0.21, x + edgeNoise) * (1.0 - smoothstep(0.62, 0.70, x + edgeNoise));
+      const lowGravY = smoothstep(-1.38, -1.30, y + edgeNoise) * (1.0 - smoothstep(-0.38 + peakLift, -0.30 + peakLift, y + edgeNoise));
+      const lowerBasaltGravel = lowGravX * lowGravY;
 
-      // 4. Foreground (South) Giant Sculpted Ring Crater & Coarse Tan Pebble Blanket
-      // Main Ring Crater centered at (-1.8, -5.5), r = 2.15m
-      const dCrater = Math.hypot(x - (-1.8), y - (-5.5));
-      const craterNorm = dCrater / 2.15;
-      const craterRimWall = Math.exp(-Math.pow((craterNorm - 0.96) / 0.16, 2));
-      const craterFloor = smoothstep(0.88, 0.72, craterNorm);
-      // Exposed white newspaper patch in the very center of the ring crater floor
-      const craterCenterPaper = smoothstep(0.36, 0.20, Math.hypot((x + 1.75) * 1.2, (y + 5.55) * 0.85));
+      // 4. Mid-Left (West) Giant Sculpted Ring Crater & Coarse Tan Pebble Blanket (Rows 3-5, Columns 1-2):
+      // Ring Crater centered at (-0.68, +0.35), outer radius r = 0.44m (~88cm diameter = 1.4 tiles)
+      const dCrater = Math.hypot(x - (-0.68), y - 0.35);
+      const craterNorm = dCrater / 0.44;
+      const craterRimWall = Math.exp(-Math.pow((craterNorm - 0.88) / 0.18, 2));
+      const craterFloor = smoothstep(0.78, 0.58, craterNorm);
+      // Rectangular exposed newspaper patch in the center of the crater bowl
+      const craterCenterPaper = (Math.abs(x + 0.68) < 0.14 && Math.abs(y - 0.35) < 0.09) ? 1.0 : 0.0;
 
-      // Coarse Tan Gravel & Pebble Ejecta Blanket spreading around crater & Eastward: x in [-4.4, +3.2], y in [-8.8, -2.1]
-      const tanGravX = smoothstep(-4.6, -3.9, x + edgeNoise * 1.2) * (1.0 - smoothstep(2.6, 3.3, x + edgeNoise * 1.2));
-      const tanGravY = smoothstep(-9.0, -8.3, y + edgeNoise) * (1.0 - smoothstep(-2.4, -1.8, y + edgeNoise * 1.2));
-      const bottomTanGravel = Math.max(tanGravX * tanGravY, smoothstep(1.45, 1.02, craterNorm));
+      // Coarse Tan Pebble Blanket around the Ring Crater and extending South to y = -0.58
+      const tanSpreadX = smoothstep(-1.16, -1.04, x + edgeNoise) * (1.0 - smoothstep(-0.24, -0.14, x + edgeNoise));
+      const tanSpreadY = smoothstep(-0.56, -0.44, y + edgeNoise) * (1.0 - smoothstep(0.86, 0.98, y + edgeNoise));
+      const leftTanGravel = Math.max(tanSpreadX * tanSpreadY, smoothstep(1.32, 0.95, craterNorm));
 
-      // 5. Central Newspaper Corridor Sheet Mask
-      const newsX = smoothstep(-6.4, -5.8, x) * (1.0 - smoothstep(6.2, 6.8, x));
-      const newsY = smoothstep(-4.8, -4.2, y) * (1.0 - smoothstep(2.5, 3.0, y));
-      const newspaperCorridor = newsX * newsY;
+      // 5. White Chart-Paper / Plastic Under-Sheets:
+      // 5a. Bottom-Left White Sheet Corridor (Column 2, Rows 1-3: x in [-0.95, -0.26], y in [-2.12, -0.35])
+      const whiteLeft = smoothstep(-0.97, -0.92, x) * (1.0 - smoothstep(-0.28, -0.23, x)) *
+                        smoothstep(-2.14, -2.08, y) * (1.0 - smoothstep(-0.36, -0.30, y));
+      // 5b. Right-Side White Sheet under Brown Sand & Ramp (Columns 4-5, Rows 2-6: x in [+0.38, +1.50], y in [-1.52, +1.52])
+      const whiteRight = smoothstep(0.36, 0.40, x) * (1.0 - smoothstep(1.47, 1.52, x)) *
+                         smoothstep(-1.55, -1.48, y) * (1.0 - smoothstep(1.48, 1.54, y));
+      const whiteSheetMask = Math.max(whiteLeft, whiteRight);
+
+      // 6. Newspaper Sheet Coverage Masks (exact layout from the 11 photos):
+      // 6a. Central Newspaper Slalom Corridor + Bottom-Center "end" Newspaper Apron (x in [-0.28, +0.44], y in [-2.12, +1.40])
+      const newsCenter = smoothstep(-0.30, -0.25, x) * (1.0 - smoothstep(0.40, 0.45, x)) *
+                         smoothstep(-2.14, -2.08, y) * (1.0 - smoothstep(1.36, 1.42, y));
+      // 6b. Left & Top-Left Newspaper Sheets (Column 1-2: x in [-1.52, -0.25], y in [-0.24, +2.10])
+      const newsLeft = smoothstep(-1.54, -1.48, x) * (1.0 - smoothstep(-0.28, -0.22, x)) *
+                       smoothstep(-0.26, -0.20, y) * (1.0 - smoothstep(2.06, 2.12, y));
+      // 6c. Bottom-Right "TIMES NATION / Kinder Bueno" Newspaper above NAKSHATRA Ramp (x in [+0.42, +1.36], y in [-1.46, -0.82])
+      const newsKinder = smoothstep(0.40, 0.44, x) * (1.0 - smoothstep(1.32, 1.38, x)) *
+                         smoothstep(-1.48, -1.42, y) * (1.0 - smoothstep(-0.84, -0.78, y));
+      const newspaperCorridor = Math.max(newsCenter, newsLeft, newsKinder);
+
+      // 7. NAKSHATRA Metallic Lander Ramp Footprint (Bottom-Right, Row 1, Columns 4-5):
+      // Centered at (+0.95, -1.78), rotated +7 deg counter-clockwise
+      const dxR = x - 0.95, dyR = y - (-1.78);
+      const cosR = Math.cos(-0.12), sinR = Math.sin(-0.12);
+      const rxLocal = dxR * cosR - dyR * sinR;
+      const ryLocal = dxR * sinR + dyR * cosR;
+      const onNakshatraRamp = (Math.abs(rxLocal) <= 0.48 && Math.abs(ryLocal) <= 0.30) ? 1.0 : 0.0;
 
       return {
-        topBrownSand,
-        leftCardboard,
-        leftBasaltGravel,
-        rightBasaltGravel,
+        topBrownSand: rightBrownSand,
+        rightBrownSand,
+        leftCardboard: topCardboard,
+        topCardboard,
+        leftBasaltGravel: topBasaltGravel,
+        topBasaltGravel,
+        rightBasaltGravel: lowerBasaltGravel,
+        lowerBasaltGravel,
         craterNorm,
         craterRimWall,
         craterFloor,
         craterCenterPaper,
-        bottomTanGravel,
-        newspaperCorridor
+        bottomTanGravel: leftTanGravel,
+        leftTanGravel,
+        whiteSheetMask,
+        newspaperCorridor,
+        newsKinder,
+        onNakshatraRamp,
+        rxLocal,
+        ryLocal
       };
     }
 
-    // Soil softness [0 = firm newspaper/tarp floor, 1 = loose brown sand / thick gravel]
+    // Soil softness [0 = firm tile/newspaper floor, 1 = loose brown sand / thick gravel]
     function getSoilSoftness(x, y) {
       const z = getNakshatraZoneWeights(x, y);
-      let s = 0.15; // Firm newspaper/tarp base
-      s = Math.max(s, z.topBrownSand * 0.82);
-      s = Math.max(s, (z.leftBasaltGravel + z.rightBasaltGravel) * 0.58);
-      s = Math.max(s, z.bottomTanGravel * 0.64);
-      s = Math.max(s, z.craterRimWall * 0.88);
+      let s = 0.10; // High-grip newspaper/tile floor
+      s = Math.max(s, z.rightBrownSand * 0.72);
+      s = Math.max(s, (z.topBasaltGravel + z.lowerBasaltGravel) * 0.52);
+      s = Math.max(s, z.leftTanGravel * 0.56);
+      s = Math.max(s, z.craterRimWall * 0.75);
       return Math.max(0, Math.min(1, s));
     }
 
-    // Sand field mask (used for fine sand ripples in the Top Brown Sand Strip)
     function getSandMask(x, y) {
-      return getNakshatraZoneWeights(x, y).topBrownSand;
+      return getNakshatraZoneWeights(x, y).rightBrownSand;
     }
 
     function getElevation(x, y) {
       const zw = getNakshatraZoneWeights(x, y);
 
-      // 1. Flat laboratory arena floor with subtle sheet undulation
-      let z = 0.004 * Math.sin(0.35 * x) * Math.cos(0.35 * y);
+      // 1. Flat 62x62cm ceramic tile classroom floor
+      let z = 0.0;
 
-      // 2. Top Brown Fine Sand & Soil Bed (+4.5cm to +8.5cm raised bed with ripples)
-      if (zw.topBrownSand > 0.01) {
-        const sandRipple = 0.012 * Math.sin(x * 4.5 + y * 2.2) + 0.028 * fbm(x * 0.7 + 3.0, y * 0.7 - 2.0, 3);
-        z += zw.topBrownSand * (0.048 + sandRipple);
+      // 2. NAKSHATRA Metallic Lander Egress Ramp (smooth physical ramp so rover drives down at Start & climbs up at End)
+      if (zw.onNakshatraRamp > 0.0) {
+        // Ramp rises smoothly from North edge (ryLocal = +0.30, z = 0.005m) up to ridge (ryLocal = -0.02, z = 0.058m)
+        // and gently slopes on the South fascia (ryLocal = -0.30, z = 0.032m)
+        if (zw.ryLocal >= -0.02) {
+          const tRamp = (0.30 - zw.ryLocal) / 0.32; // 0 at North lip -> 1 at crest
+          z += 0.004 + 0.054 * Math.max(0, Math.min(1, tRamp));
+        } else {
+          const tBack = (zw.ryLocal - (-0.30)) / 0.28; // 0 at South lip -> 1 at crest
+          z += 0.028 + 0.030 * Math.max(0, Math.min(1, tBack));
+        }
+        return z;
       }
 
-      // 3. Left Cardboard & Dark Blue-Grey Basalt Gravel Strip (+4.2cm gravel bed)
-      if (zw.leftCardboard > 0.01) {
-        z += zw.leftCardboard * 0.008;
-      }
-      if (zw.leftBasaltGravel > 0.01) {
-        const gravRough = 0.014 * (vnoise(x * 14.0, y * 14.0) - 0.5);
-        z += zw.leftBasaltGravel * (0.036 + gravRough);
+      // 3. Right-Side Long Brown Fine Sand & Soil Strip (+1.8cm to +2.8cm bed)
+      if (zw.rightBrownSand > 0.01) {
+        const sandRipple = 0.004 * Math.sin(x * 14.0 + y * 8.0) + 0.006 * fbm(x * 3.5 + 3.0, y * 3.5 - 2.0, 2);
+        z += zw.rightBrownSand * (0.018 + sandRipple);
       }
 
-      // 4. Right Dark Blue-Grey Basalt Gravel Patch (+4.0cm crushed stone bed)
-      if (zw.rightBasaltGravel > 0.01) {
-        const gravRough = 0.014 * (vnoise(x * 14.0 + 7.0, y * 14.0 - 4.0) - 0.5);
-        z += zw.rightBasaltGravel * (0.036 + gravRough);
+      // 4. Top Corrugated Cardboard & Dark Blue-Grey Basalt Gravel Strip (+2.0cm bed)
+      if (zw.topCardboard > 0.01) {
+        z += zw.topCardboard * 0.003;
+      }
+      if (zw.topBasaltGravel > 0.01) {
+        const gravRough = 0.005 * (vnoise(x * 45.0, y * 45.0) - 0.5);
+        z += zw.topBasaltGravel * (0.018 + gravRough);
       }
 
-      // 5. Bottom Coarse Tan Pebble Blanket (+3.8cm mounded river gravel)
-      if (zw.bottomTanGravel > 0.01) {
-        const pebRough = 0.016 * (vnoise(x * 11.0 - 3.0, y * 11.0 + 5.0) - 0.5);
-        z += zw.bottomTanGravel * (0.034 + pebRough) * (1.0 - zw.craterFloor * 0.75);
+      // 5. Lower-Center Dark Blue-Grey Basalt Gravel Patch (+1.8cm crushed stone bed)
+      if (zw.lowerBasaltGravel > 0.01) {
+        const gravRough = 0.005 * (vnoise(x * 45.0 + 7.0, y * 45.0 - 4.0) - 0.5);
+        z += zw.lowerBasaltGravel * (0.017 + gravRough);
       }
 
-      // 6. Foreground Giant Sculpted Ring Crater & Secondary Depressions
+      // 6. Mid-Left Coarse Tan Pebble Blanket (+1.6cm river gravel bed)
+      if (zw.leftTanGravel > 0.01) {
+        const pebRough = 0.005 * (vnoise(x * 38.0 - 3.0, y * 38.0 + 5.0) - 0.5);
+        z += zw.leftTanGravel * (0.015 + pebRough) * (1.0 - zw.craterFloor * 0.85);
+      }
+
+      // 7. Mid-Left Giant Sculpted Ring Crater (r = 0.44m, sculpted rim_h = 0.062m, traversable by 6-wheel Rocker-Bogie)
       for (const c of craters) {
         const d = Math.hypot(x - c.x, y - c.y);
         const t = d / c.r;
-        if (t > 2.5) continue;
+        if (t > 2.2) continue;
         if (c.isNakshatraMainCrater) {
-          // High, thick sculpted brown soil ring wall with flat gravelly inner floor
-          const ringWall = c.rim_h * Math.exp(-Math.pow((t - 0.96) / 0.16, 2));
-          const innerBowl = (t < 0.85) ? -0.022 * (1.0 - Math.pow(t / 0.85, 2)) : 0;
+          const ringWall = c.rim_h * Math.exp(-Math.pow((t - 0.88) / 0.19, 2));
+          const innerBowl = (t < 0.72) ? -0.008 * (1.0 - Math.pow(t / 0.72, 2)) : 0;
           z += ringWall + innerBowl;
         } else {
           if (t < 1.0) z -= c.d * Math.pow(1 - t * t, 2);
@@ -831,71 +929,82 @@
         }
       }
 
-      // 7. Gentle micro-hills inside sand/gravel beds
-      for (const h of hills) {
-        const dx = x - h.x, dy = y - h.y;
-        const c = Math.cos(h.rot), s = Math.sin(h.rot);
-        const u = (dx * c + dy * s) / h.sx;
-        const v = (-dx * s + dy * c) / h.sy;
-        const q = u * u + v * v;
-        if (q < 9) z += h.h * Math.exp(-0.5 * q);
-      }
-
       return z;
     }
 
-    // Generates subtle sand & gravel mounds matching the Nakshatra Physical Arena
-    function generateHills(rng) {
-      return [
-        // Undulating mounds along the Top Brown Sand Strip
-        { x: -4.2, y: 5.5, h: 0.06, sx: 1.8, sy: 1.1, rot: 0.1 },
-        { x: -1.5, y: 5.3, h: 0.07, sx: 2.0, sy: 1.2, rot: -0.15 },
-        { x: 1.2, y: 5.2, h: 0.06, sx: 1.6, sy: 1.1, rot: 0.08 },
-        // Coarse gravel mounding to the East of the Giant Ring Crater
-        { x: 0.6, y: -5.4, h: 0.08, sx: 1.9, sy: 1.6, rot: 0.3 },
-        // Slight crown on the Left & Right Dark Basalt Gravel beds
-        { x: -7.4, y: 1.2, h: 0.04, sx: 1.2, sy: 3.5, rot: Math.PI / 2 },
-        { x: 4.0, y: -1.8, h: 0.04, sx: 1.6, sy: 1.8, rot: 0.0 }
-      ];
+    function generateHills() {
+      return [];
     }
 
-    // Authentic Albedo Coloring matching the 4 Nakshatra Physical Arena Photos
+    // Authentic 1:1 Albedo Coloring for the 5x7 Tile (62x62cm) Nakshatra Classroom Arena
     function getTerrainColor(x, y, slope) {
-      // Dark indoor hackathon hall floor outside the 20m x 20m physical testbed
-      if (Math.abs(x) > 10.02 || Math.abs(y) > 10.02) {
-        const gOut = (vnoise(x * 4.0, y * 4.0) - 0.5) * 0.02;
-        return [0.06 + gOut, 0.08 + gOut, 0.11 + gOut];
+      const zw = getNakshatraZoneWeights(x, y);
+      const grain = (vnoise(x * 35.0, y * 35.0) - 0.5);
+
+      // 1. Base Classroom Floor: Warm Cream-Beige Vitrified Ceramic Tiles (62cm x 62cm exact grid!)
+      // Tile grid aligned with x = -1.55 + k*0.62 and y = -2.17 + m*0.62
+      const tileU = ((x + ARENA_HALF_X) / TILE_SIZE_M);
+      const tileV = ((y + ARENA_HALF_Y) / TILE_SIZE_M);
+      const distGroutX = Math.min( Math.abs(tileU - Math.round(tileU)), 1.0 ) * TILE_SIZE_M;
+      const distGroutY = Math.min( Math.abs(tileV - Math.round(tileV)), 1.0 ) * TILE_SIZE_M;
+      const isGrout = (distGroutX < 0.008 || distGroutY < 0.008);
+      const isArenaBorderGrout = (Math.abs(Math.abs(x) - ARENA_HALF_X) < 0.012 && Math.abs(y) <= ARENA_HALF_Y) ||
+                                 (Math.abs(Math.abs(y) - ARENA_HALF_Y) < 0.012 && Math.abs(x) <= ARENA_HALF_X);
+
+      // Subtle marble vein inside each 62x62cm ceramic tile
+      const vein = 0.025 * fbm(x * 3.0 + 1.2, y * 3.0 - 0.8, 2);
+      let r = 0.76 + vein + grain * 0.015;
+      let g = 0.73 + vein + grain * 0.015;
+      let b = 0.66 + vein + grain * 0.015;
+      if (isGrout) {
+        r -= 0.16; g -= 0.16; b -= 0.15;
+      }
+      if (isArenaBorderGrout) {
+        r = 0.15; g = 0.62; b = 0.78; // Subtle cyan 5x7 tile arena perimeter highlight
       }
 
-      const zw = getNakshatraZoneWeights(x, y);
-      const grain = (vnoise(x * 12.0, y * 12.0) - 0.5);
+      // 2. White Chart-Paper / Plastic Sheet (Bottom-Left Corridor & Right Margin under Sand)
+      if (zw.whiteSheetMask > 0.01) {
+        const w = zw.whiteSheetMask;
+        const wr = 0.86 + grain * 0.02, wg = 0.87 + grain * 0.02, wb = 0.88 + grain * 0.02;
+        r = r * (1 - w) + wr * w;
+        g = g * (1 - w) + wg * w;
+        b = b * (1 - w) + wb * w;
+      }
 
-      // Base White Tarp / Sheet Color (Clean matte off-white around upper-right & outer borders)
-      let r = 0.72 + grain * 0.03;
-      let g = 0.72 + grain * 0.03;
-      let b = 0.70 + grain * 0.03;
-
-      // Central Newspaper Sheet Corridor (Off-white newsprint with page seams & column mottling)
+      // 3. Newspaper Sheets & Full-Color Magazine Pages (Central Corridor, Left/Top-Left, Kinder Bueno Ad)
       if (zw.newspaperCorridor > 0.01) {
-        const pageSeamX = Math.pow(Math.abs(Math.cos(x * 2.8)), 28);
-        const pageSeamY = Math.pow(Math.abs(Math.cos(y * 3.4)), 28);
-        const seam = -Math.max(pageSeamX, pageSeamY) * 0.11;
-        const printPatch = fbm(x * 3.2 + 1.7, y * 3.2 - 2.3, 3);
-        // Occasional colorful magazine/newspaper ad patches (like the purple/blue/amber ads in the photos!)
-        let nr = 0.71 - 0.12 * printPatch + seam + grain * 0.04;
-        let ng = 0.70 - 0.12 * printPatch + seam + grain * 0.04;
-        let nb = 0.67 - 0.10 * printPatch + seam + grain * 0.04;
+        const pageSeamX = Math.pow(Math.abs(Math.cos(x * 8.5)), 24);
+        const pageSeamY = Math.pow(Math.abs(Math.cos(y * 6.8)), 24);
+        const seam = -Math.max(pageSeamX, pageSeamY) * 0.12;
+        const printCol = (Math.sin(x * 55.0) * Math.cos(y * 18.0) > 0.2) ? -0.05 : 0.0;
+        const printPatch = fbm(x * 9.0 + 1.7, y * 9.0 - 2.3, 3);
+        let nr = 0.77 - 0.09 * printPatch + seam + printCol + grain * 0.03;
+        let ng = 0.76 - 0.09 * printPatch + seam + printCol + grain * 0.03;
+        let nb = 0.73 - 0.08 * printPatch + seam + printCol + grain * 0.03;
 
-        // Subtle magazine color accents matching the middle newspaper sheets
-        const mag1 = Math.exp(-Math.pow((x + 1.8) / 0.75, 2) - Math.pow((y + 0.5) / 0.55, 2)); // Blue/gold magazine patch
-        const mag2 = Math.exp(-Math.pow((x + 0.1) / 0.70, 2) - Math.pow((y - 1.1) / 0.65, 2)); // Dark sepia/purple magazine page
-        nr = nr * (1 - 0.35 * mag1) + 0.25 * mag1;
-        ng = ng * (1 - 0.30 * mag1) + 0.32 * mag1;
-        nb = nb * (1 - 0.10 * mag1) + 0.52 * mag1;
+        // Specific Magazine Ads visible in the 11 photos:
+        // A. "Kinder bueno / Raffaello 22% OFF" warm reddish-brown ad (x in [0.82, 1.32], y in [-1.42, -0.85])
+        if (x > 0.82 && x < 1.32 && y > -1.42 && y < -0.85) {
+          nr = 0.58 + grain * 0.04; ng = 0.31 + grain * 0.03; nb = 0.20 + grain * 0.03;
+        }
+        // B. "TANIRA" dark sepia/purple glossy magazine page in center (x in [-0.12, 0.38], y in [-0.05, 0.25])
+        const taniraW = Math.exp(-Math.pow((x - 0.12) / 0.22, 2) - Math.pow((y - 0.10) / 0.14, 2));
+        nr = nr * (1 - 0.55 * taniraW) + 0.26 * taniraW;
+        ng = ng * (1 - 0.60 * taniraW) + 0.18 * taniraW;
+        nb = nb * (1 - 0.50 * taniraW) + 0.22 * taniraW;
 
-        nr = nr * (1 - 0.42 * mag2) + 0.28 * mag2;
-        ng = ng * (1 - 0.48 * mag2) + 0.20 * mag2;
-        nb = nb * (1 - 0.38 * mag2) + 0.30 * mag2;
+        // C. "Celebrations" purple/gold Cadbury ad right of crater (x in [-0.28, -0.04], y in [0.32, 0.62])
+        const celebW = Math.exp(-Math.pow((x + 0.16) / 0.12, 2) - Math.pow((y - 0.46) / 0.14, 2));
+        nr = nr * (1 - 0.50 * celebW) + 0.28 * celebW;
+        ng = ng * (1 - 0.55 * celebW) + 0.20 * celebW;
+        nb = nb * (1 - 0.25 * celebW) + 0.52 * celebW;
+
+        // D. "Trailblazing Startups" deep blue ad in upper-center (x in [0.05, 0.35], y in [0.98, 1.30])
+        const blueAdW = Math.exp(-Math.pow((x - 0.18) / 0.13, 2) - Math.pow((y - 1.14) / 0.14, 2));
+        nr = nr * (1 - 0.55 * blueAdW) + 0.16 * blueAdW;
+        ng = ng * (1 - 0.45 * blueAdW) + 0.26 * blueAdW;
+        nb = nb * (1 - 0.20 * blueAdW) + 0.48 * blueAdW;
 
         const w = zw.newspaperCorridor;
         r = r * (1 - w) + nr * w;
@@ -903,72 +1012,72 @@
         b = b * (1 - w) + nb * w;
       }
 
-      // Left Cardboard Under-Sheet (Warm corrugated cardboard brown border)
-      if (zw.leftCardboard > 0.01) {
-        const w = zw.leftCardboard;
-        const cr = 0.66 + grain * 0.04, cg = 0.50 + grain * 0.03, cb = 0.33 + grain * 0.02;
+      // 4. Top Brown Corrugated Cardboard Under-Sheet
+      if (zw.topCardboard > 0.01) {
+        const w = zw.topCardboard;
+        const cr = 0.67 + grain * 0.03, cg = 0.48 + grain * 0.03, cb = 0.28 + grain * 0.02;
         r = r * (1 - w) + cr * w;
         g = g * (1 - w) + cg * w;
         b = b * (1 - w) + cb * w;
       }
 
-      // Top (North) Wide Brown Fine Sand & Soil Bed
-      if (zw.topBrownSand > 0.01) {
-        const w = zw.topBrownSand;
-        const mottle = 0.05 * fbm(x * 2.5, y * 2.5, 2) + grain * 0.05;
-        const sr = 0.54 + mottle, sg = 0.38 + mottle * 0.75, sb = 0.25 + mottle * 0.5;
+      // 5. Right-Side Long Brown Fine Sand & Soil Strip
+      if (zw.rightBrownSand > 0.01) {
+        const w = zw.rightBrownSand;
+        const mottle = 0.05 * fbm(x * 8.0, y * 8.0, 2) + grain * 0.05;
+        const sr = 0.55 + mottle, sg = 0.39 + mottle * 0.78, sb = 0.25 + mottle * 0.55;
         r = r * (1 - w) + sr * w;
         g = g * (1 - w) + sg * w;
         b = b * (1 - w) + sb * w;
       }
 
-      // Left & Right Dark Blue-Grey Crushed Basalt Gravel Beds
-      const basaltW = Math.max(zw.leftBasaltGravel, zw.rightBasaltGravel);
+      // 6. Top & Lower-Center Dark Blue-Grey Crushed Basalt Gravel Beds
+      const basaltW = Math.max(zw.topBasaltGravel, zw.lowerBasaltGravel);
       if (basaltW > 0.01) {
-        const chip = 0.06 * (vnoise(x * 22.0, y * 22.0) - 0.5);
-        const br = 0.22 + chip, bg = 0.26 + chip, bb = 0.31 + chip * 1.1;
+        const chip = 0.06 * (vnoise(x * 65.0, y * 65.0) - 0.5);
+        const br = 0.23 + chip, bg = 0.27 + chip, bb = 0.31 + chip * 1.1;
         r = r * (1 - basaltW) + br * basaltW;
         g = g * (1 - basaltW) + bg * basaltW;
         b = b * (1 - basaltW) + bb * basaltW;
       }
 
-      // Foreground (South) Coarse Tan Pebble Blanket & Giant Sculpted Ring Crater
-      if (zw.bottomTanGravel > 0.01) {
-        const w = zw.bottomTanGravel;
-        const peb = 0.07 * (vnoise(x * 16.0, y * 16.0) - 0.5);
-        let tr = 0.57 + peb, tg = 0.47 + peb * 0.85, tb = 0.35 + peb * 0.65;
-        // Darker compacted moist brown soil on the sculpted ring crater wall
+      // 7. Mid-Left Giant Sculpted Ring Crater & Coarse Tan Pebble Blanket
+      if (zw.leftTanGravel > 0.01) {
+        const w = zw.leftTanGravel;
+        const peb = 0.07 * (vnoise(x * 50.0, y * 50.0) - 0.5);
+        let tr = 0.60 + peb, tg = 0.49 + peb * 0.85, tb = 0.37 + peb * 0.65;
+        // Darker sculpted moist brown soil on the Ring Crater wall
         const rimW = Math.min(1.0, zw.craterRimWall * 1.15);
-        tr = tr * (1 - rimW) + (0.45 + peb * 0.5) * rimW;
-        tg = tg * (1 - rimW) + (0.33 + peb * 0.4) * rimW;
-        tb = tb * (1 - rimW) + (0.22 + peb * 0.3) * rimW;
-        // Exposed white newspaper patch in the center of the crater bowl
+        tr = tr * (1 - rimW) + (0.46 + peb * 0.4) * rimW;
+        tg = tg * (1 - rimW) + (0.34 + peb * 0.35) * rimW;
+        tb = tb * (1 - rimW) + (0.23 + peb * 0.25) * rimW;
+        // Exposed rectangular newspaper patch in the center of the crater bowl
         if (zw.craterCenterPaper > 0.01) {
-          const pw = zw.craterCenterPaper * 0.85;
-          tr = tr * (1 - pw) + 0.80 * pw;
-          tg = tg * (1 - pw) + 0.79 * pw;
-          tb = tb * (1 - pw) + 0.75 * pw;
+          const pw = zw.craterCenterPaper * 0.88;
+          tr = tr * (1 - pw) + 0.78 * pw;
+          tg = tg * (1 - pw) + 0.77 * pw;
+          tb = tb * (1 - pw) + 0.73 * pw;
         }
         r = r * (1 - w) + tr * w;
         g = g * (1 - w) + tg * w;
         b = b * (1 - w) + tb * w;
       }
 
-      const slopeHighlight = 0.06 * slope;
+      const slopeHighlight = 0.05 * slope;
       return [
-        Math.max(0.10, Math.min(0.95, r + slopeHighlight)),
-        Math.max(0.10, Math.min(0.95, g + slopeHighlight)),
-        Math.max(0.10, Math.min(0.95, b + slopeHighlight))
+        Math.max(0.08, Math.min(0.94, r + slopeHighlight)),
+        Math.max(0.08, Math.min(0.94, g + slopeHighlight)),
+        Math.max(0.08, Math.min(0.94, b + slopeHighlight))
       ];
     }
 
     // --- Continual Teacher-Student, Multi-Attempt & 2000-Win Marathon State with Permanent LocalStorage Persistence ---
     const STORAGE_KEYS = {
-      DEMOS: 'lunar_rover_permanent_teacher_demos_v1',
-      CORRIDOR: 'lunar_rover_permanent_safe_corridor_v2_nakshatra',
-      FAILURES: 'lunar_rover_current_map_failures_v2_nakshatra',
-      MAP: 'lunar_rover_saved_map_v2_nakshatra',
-      META: 'lunar_rover_play_meta_v2_nakshatra',
+      DEMOS: 'lunar_rover_permanent_teacher_demos_v3_5x7',
+      CORRIDOR: 'lunar_rover_permanent_safe_corridor_v3_5x7',
+      FAILURES: 'lunar_rover_current_map_failures_v3_5x7',
+      MAP: 'lunar_rover_saved_map_v3_5x7',
+      META: 'lunar_rover_play_meta_v3_5x7',
       WINS: 'lunar_rover_total_wins_v1',
       POLICY: 'lunar_rover_policy_evolution_v1',
       AUTOLOOP: 'lunar_rover_autoloop_active_v1'
@@ -1185,22 +1294,38 @@
     // Load any previously saved permanent training data immediately
     loadPermanentTrainingData();
 
-    // Authentic 1:1 Generation of the Nakshatra Hackathon Physical Arena (from the 4 Live Arena Photos)
+    // Helper: Minimum distance from (px, py) to any segment of NAKSHATRA_PRESCRIBED_PATH
+    function distToPrescribedPath(px, py) {
+      let minDist = Infinity;
+      for (let i = 0; i < NAKSHATRA_PRESCRIBED_PATH.length - 1; i++) {
+        const a = NAKSHATRA_PRESCRIBED_PATH[i];
+        const b = NAKSHATRA_PRESCRIBED_PATH[i + 1];
+        const vx = b.x - a.x, vy = b.y - a.y;
+        const lenSq = vx * vx + vy * vy || 1e-6;
+        const t = Math.max(0, Math.min(1, ((px - a.x) * vx + (py - a.y) * vy) / lenSq));
+        const projX = a.x + t * vx;
+        const projY = a.y + t * vy;
+        const d = Math.hypot(px - projX, py - projY);
+        if (d < minDist) minDist = d;
+      }
+      return minDist;
+    }
+
+    // Authentic 1:1 Generation of the 5x7 Tile (3.10m x 4.34m) Nakshatra Hackathon Physical Arena
     function generateArenaData(forceNew = false) {
-      if (!forceNew && savedMapData && savedMapData.isNakshatraArena && Array.isArray(savedMapData.craters) && Array.isArray(savedMapData.boulders)) {
-        // Reuse exact same Nakshatra physical map for retry or browser reload!
+      if (!forceNew && savedMapData && savedMapData.isNakshatra5x7 && Array.isArray(savedMapData.craters) && Array.isArray(savedMapData.boulders)) {
         craters = JSON.parse(JSON.stringify(savedMapData.craters));
         boulders = JSON.parse(JSON.stringify(savedMapData.boulders));
-        goal = (savedMapData.goal && typeof savedMapData.goal.x === 'number') ? { ...savedMapData.goal } : { x: -7.2, y: -0.8 };
-        startPos = (savedMapData.startPos && typeof savedMapData.startPos.x === 'number') ? { ...savedMapData.startPos } : { x: 5.2, y: 2.1 };
+        startPos = { x: NAKSHATRA_PRESCRIBED_PATH[0].x, y: NAKSHATRA_PRESCRIBED_PATH[0].y };
+        currentWaypointIndex = 1;
+        goal = { x: NAKSHATRA_PRESCRIBED_PATH[1].x, y: NAKSHATRA_PRESCRIBED_PATH[1].y };
         terrainSeed = savedMapData.seed || 20261024;
-        hills = Array.isArray(savedMapData.hills) ? JSON.parse(JSON.stringify(savedMapData.hills)) : generateHills();
+        hills = [];
         trajectory = [];
         pathLength = 0;
         return;
       }
 
-      // Build the Authentic Nakshatra Hackathon Physical Arena Layout
       craters = [];
       boulders = [];
       trajectory = [];
@@ -1211,123 +1336,95 @@
       attemptProgressWaypoints = [];
       if (typeof build3DFailureMarkers === 'function') build3DFailureMarkers();
 
-      // Rover spawns at the base of the "NAKSHATRA" Metallic Lander Ramp (Upper-Right)
+      // Rover starts on the right ("RA") side of the "NAKSHATRA" Metallic Lander Ramp
       startPos = {
-        x: 5.2 + (forceNew ? (Math.random() - 0.5) * 0.4 : 0),
-        y: 2.1 + (forceNew ? (Math.random() - 0.5) * 0.4 : 0)
+        x: NAKSHATRA_PRESCRIBED_PATH[0].x,
+        y: NAKSHATRA_PRESCRIBED_PATH[0].y
+      };
+      currentWaypointIndex = 1;
+      goal = {
+        x: NAKSHATRA_PRESCRIBED_PATH[1].x,
+        y: NAKSHATRA_PRESCRIBED_PATH[1].y
       };
 
-      // Target Goal placed on the far West side (across the central pebble slalom corridor & left basalt strip)
-      const goalCandidates = [
-        { x: -7.2, y: -0.8 },
-        { x: -7.4, y: 2.2 },
-        { x: -7.0, y: -2.8 },
-        { x: -6.8, y: 4.5 }
-      ];
-      const chosenGoal = forceNew ? goalCandidates[Math.floor(Math.random() * goalCandidates.length)] : goalCandidates[0];
-      goal = { x: chosenGoal.x, y: chosenGoal.y };
+      terrainSeed = 20261024;
+      hills = [];
 
-      terrainSeed = 20261024 + (forceNew ? Math.floor(Math.random() * 1000) : 0);
-      hills = generateHills();
-
-      // 1. Craters: Giant Foreground Sculpted Ring Crater + Shallow Sand/Gravel Depressions
+      // 1. Craters: Mid-Left Giant Sculpted Ring Crater at (-0.68, +0.35), r = 0.44m (~88cm diameter across Columns 1-2, Rows 4-5)
       craters = [
-        // Giant Foreground Sculpted Ring Crater (Bottom-Center-Left in all 4 photos)
-        { x: -1.8, y: -5.5, r: 2.15, d: 0.24, rim_h: 0.36, isNakshatraMainCrater: true },
-        // Secondary shallow depressions in the Top Brown Sand Bed & Gravel Zones
-        { x: -3.6, y: 5.4, r: 0.78, d: 0.08, rim_h: 0.04 },
-        { x: 0.4, y: 5.6, r: 0.72, d: 0.07, rim_h: 0.04 },
-        { x: 0.9, y: -5.8, r: 0.88, d: 0.10, rim_h: 0.06 },
-        { x: 3.9, y: -1.8, r: 0.82, d: 0.07, rim_h: 0.04 }
+        { x: -0.68, y: 0.35, r: 0.44, d: 0.035, rim_h: 0.062, isNakshatraMainCrater: true }
       ];
 
-      // 2. Boulders & River Cobbles: Exact 48 Rocks from the 4 Nakshatra Physical Arena Photos
+      // 2. Boulders, Bricks & River Cobbles: Exact Stones from the 11 Photos in "New folder (2)"
+      // Positioned in their exact photo locations while preserving clear wheel track along NAKSHATRA_PRESCRIBED_PATH
       const nakshatraRocks = [
-        // --- Group A: Top Brown Fine Sand Strip Rocks (6 distinct stones/bricks) ---
-        { x: -4.8, y: 6.5, r: 0.36, rockType: 'brown_brick' }, // Large flat rectangular brick on upper-left of brown sand
-        { x: -4.1, y: 5.1, r: 0.20, rockType: 'tan_cobble' },  // Small round pebble below brick
-        { x: -2.8, y: 4.5, r: 0.28, rockType: 'brown_brick' }, // Blocky brown stone in lower-left of brown sand
-        { x: -1.2, y: 6.1, r: 0.30, rockType: 'grey_stone' },  // Grey-white angular cobble in upper-middle of brown sand
-        { x: -0.2, y: 5.0, r: 0.19, rockType: 'dark_basalt' }, // Small dark stone in middle of brown sand
-        { x: 1.6,  y: 5.3, r: 0.26, rockType: 'tan_cobble' },  // Rounded tan cobble on right side of brown sand
+        // --- Group A: Right-Side Long Brown Fine Sand Strip Rocks (Images 4, 5, 6) ---
+        { x: 1.24, y: 1.18,  r: 0.065, rockType: 'tan_cobble' },  // Large angular tan/brown rock in upper-right of brown sand (Image 6)
+        { x: 0.58, y: 0.88,  r: 0.044, rockType: 'brown_brick' }, // Square reddish-brown brick block on left side of brown sand (Image 5 & 6)
+        { x: 1.14, y: 0.72,  r: 0.048, rockType: 'grey_stone' },  // Grey porous stone on right side of brown sand (Image 5 & 6)
+        { x: 0.62, y: 1.12,  r: 0.032, rockType: 'tan_cobble' },  // Smooth oval pebble in upper-left of brown sand (Image 6)
+        { x: 0.98, y: 1.02,  r: 0.030, rockType: 'grey_stone' },  // Flat grey stone above porous stone (Image 5)
+        { x: 1.18, y: 0.02,  r: 0.042, rockType: 'tan_cobble' },  // Rounded tan cobble in lower-right of brown sand (Image 4 & 5)
+        { x: 1.16, y: 0.36,  r: 0.038, rockType: 'grey_stone' },  // Pale elongated stone in mid-right of brown sand (Image 4 & 5)
+        { x: 0.64, y: 0.48,  r: 0.028, rockType: 'tan_cobble' },  // Small pebble on left side of brown sand
 
-        // --- Group B: Central-Left Newspaper Corridor Cobbles & Prominent Dark Angular Rock ---
-        { x: -1.9, y: -1.1, r: 0.33, rockType: 'dark_basalt' }, // Prominent dark charcoal angular rock right above crater rim
-        { x: -1.7, y: 1.7,  r: 0.32, rockType: 'grey_stone' },  // Large flat grey stone near upper-center newspaper
-        { x: -2.0, y: 0.6,  r: 0.27, rockType: 'tan_cobble' },  // Medium brown cobble below flat grey stone
-        { x: -1.1, y: 1.5,  r: 0.24, rockType: 'brown_brick' },
-        { x: -1.3, y: 0.8,  r: 0.22, rockType: 'tan_cobble' },
-        { x: -3.6, y: 2.1,  r: 0.24, rockType: 'grey_stone' },
-        { x: -3.2, y: 1.4,  r: 0.22, rockType: 'tan_cobble' },
-        { x: -4.2, y: 0.8,  r: 0.21, rockType: 'grey_stone' },
-        { x: -2.8, y: 0.5,  r: 0.20, rockType: 'tan_cobble' },
-        { x: -4.5, y: -0.4, r: 0.24, rockType: 'brown_brick' },
-        { x: -3.8, y: -1.1, r: 0.21, rockType: 'tan_cobble' },
-        { x: -3.1, y: -0.3, r: 0.22, rockType: 'grey_stone' },
-        { x: -2.5, y: -1.4, r: 0.20, rockType: 'tan_cobble' },
-        { x: -0.8, y: 2.1,  r: 0.21, rockType: 'tan_cobble' },
-        { x: -0.5, y: 1.1,  r: 0.22, rockType: 'grey_stone' },
-        { x: -0.9, y: 0.1,  r: 0.20, rockType: 'tan_cobble' },
-        { x: -0.4, y: -0.8, r: 0.21, rockType: 'tan_cobble' },
-        { x: -1.1, y: -1.7, r: 0.22, rockType: 'brown_brick' },
+        // --- Group B: Central Newspaper Slalom Corridor Stones (Images 2, 3, 5, 7) ---
+        // Left-side newspaper edge stones (between Ring Crater tan gravel and upward central path x ≈ -0.03)
+        { x: -0.22, y: 0.44,  r: 0.042, rockType: 'dark_basalt' }, // Elongated dark stone on purple "Celebrations" ad (Image 5 & 7)
+        { x: -0.22, y: 0.14,  r: 0.034, rockType: 'tan_cobble' },  // Pebble below Celebrations ad
+        { x: -0.22, y: -0.14, r: 0.032, rockType: 'tan_cobble' },  // Pebble near lower-left of central newspaper
+        { x: -0.20, y: 0.72,  r: 0.030, rockType: 'grey_stone' },  // Small pebble above Celebrations ad
+        { x: -0.20, y: 0.92,  r: 0.030, rockType: 'tan_cobble' },  // Small pebble in upper-left central newspaper
 
-        // --- Group C: Central-Right Newspaper Slalom & Basalt Patch Corner Cluster ---
-        { x: 1.8,  y: 1.7,  r: 0.31, rockType: 'brown_brick' }, // Larger rocks at top-left corner of right basalt patch
-        { x: 2.1,  y: 1.1,  r: 0.26, rockType: 'dark_basalt' },
-        { x: 1.5,  y: 1.1,  r: 0.22, rockType: 'tan_cobble' },
-        { x: 0.2,  y: 1.6,  r: 0.22, rockType: 'dark_basalt' },
-        { x: 0.8,  y: 1.4,  r: 0.25, rockType: 'brown_brick' },
-        { x: 0.5,  y: 0.6,  r: 0.21, rockType: 'tan_cobble' },
-        { x: 1.1,  y: 0.4,  r: 0.23, rockType: 'brown_brick' },
-        { x: 1.6,  y: -0.2, r: 0.26, rockType: 'tan_cobble' },
-        { x: 0.1,  y: -0.2, r: 0.21, rockType: 'grey_stone' },
-        { x: 0.6,  y: -0.9, r: 0.24, rockType: 'tan_cobble' },
-        { x: 1.2,  y: -1.1, r: 0.25, rockType: 'tan_cobble' },
-        { x: 0.2,  y: -1.6, r: 0.23, rockType: 'grey_stone' },
-        { x: 0.9,  y: -1.8, r: 0.22, rockType: 'tan_cobble' },
-        { x: 1.5,  y: -1.6, r: 0.24, rockType: 'brown_brick' },
-        { x: -0.2, y: -2.1, r: 0.21, rockType: 'tan_cobble' },
-        { x: 0.5,  y: -2.3, r: 0.22, rockType: 'tan_cobble' },
-        { x: -4.9, y: 1.7,  r: 0.23, rockType: 'grey_stone' },
-        { x: -5.1, y: -1.5, r: 0.24, rockType: 'dark_basalt' },
+        // Central spine stones (between upward leg x ≈ -0.03 and downward return leg x ≈ +0.36, below top U-turn y = 1.00)
+        { x: 0.17,  y: 0.56,  r: 0.045, rockType: 'grey_stone' },  // Prominent flat grey stone near "TIMES ascent" (Image 5 & 7)
+        { x: 0.16,  y: 0.76,  r: 0.034, rockType: 'brown_brick' }, // Brown stone above flat grey stone
+        { x: 0.16,  y: 0.36,  r: 0.034, rockType: 'tan_cobble' },  // Tan cobble below flat grey stone
+        { x: 0.16,  y: 0.14,  r: 0.036, rockType: 'tan_cobble' },  // Cobble on dark "TANIRA" magazine ad (Image 5)
+        { x: 0.16,  y: -0.08, r: 0.032, rockType: 'brown_brick' }, // Small brown stone below TANIRA ad
+        { x: 0.16,  y: -0.24, r: 0.034, rockType: 'tan_cobble' },  // Stone right above lower dark basalt gravel patch
 
-        // --- Group D: Outer Gravel & Crater Skirt Stones ---
-        { x: -3.5, y: -3.2, r: 0.24, rockType: 'tan_cobble' },
-        { x: 0.8,  y: -3.3, r: 0.25, rockType: 'tan_cobble' },
-        { x: 2.2,  y: -3.6, r: 0.26, rockType: 'dark_basalt' },
-        { x: -5.4, y: 0.2,  r: 0.22, rockType: 'grey_stone' },
-        { x: -4.8, y: -2.4, r: 0.23, rockType: 'tan_cobble' },
-        { x: 2.8,  y: 0.4,  r: 0.24, rockType: 'dark_basalt' }
+        // Upper-center newspaper stones above the central U-turn (y > 1.16)
+        { x: -0.04, y: 1.24,  r: 0.032, rockType: 'tan_cobble' },
+        { x: 0.16,  y: 1.26,  r: 0.034, rockType: 'grey_stone' },
+        { x: 0.30,  y: 1.24,  r: 0.032, rockType: 'tan_cobble' },
+
+        // --- Group C: Stones along Top Edge of Lower Dark Basalt Gravel Patch (Images 2, 3, 4) ---
+        { x: 0.25,  y: -0.32, r: 0.035, rockType: 'brown_brick' }, // Stone at top-right of lower basalt patch
+        { x: -0.22, y: -0.32, r: 0.032, rockType: 'tan_cobble' },  // Stone at top-left of lower basalt patch
+
+        // --- Group D: Outer Ring Crater Rim & Tan Gravel Accent Stones (Images 2, 7, 10, 11) ---
+        { x: -1.12, y: 0.52,  r: 0.035, rockType: 'tan_cobble' },
+        { x: -1.08, y: 0.12,  r: 0.034, rockType: 'tan_cobble' },
+        { x: -0.32, y: 0.68,  r: 0.030, rockType: 'tan_cobble' },
+        { x: -0.34, y: 0.02,  r: 0.030, rockType: 'tan_cobble' }
       ];
 
       for (const b of nakshatraRocks) {
-        const jitterX = forceNew ? (Math.random() - 0.5) * 0.16 : 0;
-        const jitterY = forceNew ? (Math.random() - 0.5) * 0.16 : 0;
-        let bx = b.x + jitterX;
-        let by = b.y + jitterY;
+        let bx = b.x;
+        let by = b.y;
         const br = b.r;
 
-        // Ensure spawn and goal remain clear
-        if (Math.hypot(bx - startPos.x, by - startPos.y) < br + 0.9) continue;
-        if (Math.hypot(bx - goal.x, by - goal.y) < br + 0.9) continue;
+        // Guarantee at least 13.5cm clearance from the prescribed red path centerline so rover wheels never clip a rock
+        if (distToPrescribedPath(bx, by) < br + 0.115) continue;
 
         boulders.push({
           x: bx,
           y: by,
           r: br,
-          h: br * 0.95,
+          h: br * 0.90,
           rockType: b.rockType || 'tan_cobble'
         });
       }
 
       savedMapData = {
-        isNakshatraArena: true,
+        isNakshatra5x7: true,
         craters: JSON.parse(JSON.stringify(craters)),
         boulders: JSON.parse(JSON.stringify(boulders)),
         goal: { ...goal },
         startPos: { ...startPos },
         seed: terrainSeed,
-        hills: JSON.parse(JSON.stringify(hills))
+        hills: []
       };
       savePermanentTrainingData();
     }
@@ -1371,9 +1468,9 @@
       const width = container.clientWidth || 920;
       const height = container.clientHeight || 550;
 
-      camera = new THREE.PerspectiveCamera(45, width / height, 0.05, 120);
-      // Frame the arena from the South foreground looking North — matching the exact perspective of the 4 Nakshatra Arena photos
-      camera.position.set(0.0, 9.2, 13.8);
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.03, 80);
+      // Frame the full 5x7 tile (3.10m x 4.34m) arena + NAKSHATRA ramp from the South looking North — exact perspective of WhatsApp Image 1.47.11 PM.jpeg
+      camera.position.set(0.0, 3.60, 3.92);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
       renderer.setSize(width, height);
@@ -1391,35 +1488,35 @@
         pipRenderer.setPixelRatio(1);
         pipRenderer.autoClear = false;
       }
-      stereoCamLeft = new THREE.PerspectiveCamera(72, 149 / 96, 0.03, 35);
-      stereoCamRight = new THREE.PerspectiveCamera(72, 149 / 96, 0.03, 35);
+      stereoCamLeft = new THREE.PerspectiveCamera(72, 149 / 96, 0.03, 18);
+      stereoCamRight = new THREE.PerspectiveCamera(72, 149 / 96, 0.03, 18);
       mastCamera = stereoCamLeft; // backward-compatibility anchor
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.maxPolarAngle = Math.PI / 2 - 0.03;
-      controls.minDistance = 0.5;
-      controls.maxDistance = 55.0;
-      controls.target.set(0, 0, -0.5);
+      controls.minDistance = 0.3;
+      controls.maxDistance = 20.0;
+      controls.target.set(0, 0, 0.14);
 
-      // --- Lighting: Crisp Nakshatra Indoor Hackathon Arena Illumination + Directional Sun Shadows ---
-      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.38);
+      // --- Lighting: Crisp Nakshatra Indoor Classroom Arena Illumination + High-Res Shadows ---
+      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.44);
       scene.add(ambientLight);
 
-      const hemiLight = new THREE.HemisphereLight(0xf1f5f9, 0x645446, 0.36);
+      const hemiLight = new THREE.HemisphereLight(0xf8fafc, 0x645446, 0.40);
       scene.add(hemiLight);
 
-      const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.25);
-      sunLight.position.set(16.0, 16.0, 12.0);
+      const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.18);
+      sunLight.position.set(4.5, 6.5, 4.0);
       sunLight.castShadow = true;
       sunLight.shadow.mapSize.width = 4096;
       sunLight.shadow.mapSize.height = 4096;
       sunLight.shadow.camera.near = 0.5;
-      sunLight.shadow.camera.far = 65;
-      sunLight.shadow.bias = -0.0003;
-      if ('normalBias' in sunLight.shadow) sunLight.shadow.normalBias = 0.02;
-      const d = 16.5; // Covers full 20m x 20m terrain
+      sunLight.shadow.camera.far = 25;
+      sunLight.shadow.bias = -0.0002;
+      if ('normalBias' in sunLight.shadow) sunLight.shadow.normalBias = 0.008;
+      const d = 3.2; // Covers full 3.10m x 4.34m (5x7 tile) arena at ultra-sharp 1.5mm texel resolution
       sunLight.shadow.camera.left = -d;
       sunLight.shadow.camera.right = d;
       sunLight.shadow.camera.top = d;
@@ -1427,11 +1524,11 @@
       scene.add(sunLight);
 
       // Balanced overhead hall fill light from opposite side
-      const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.24);
-      fillLight.position.set(-16, 14, -12);
+      const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.26);
+      fillLight.position.set(-4.5, 5.5, -4.0);
       scene.add(fillLight);
 
-      // Starfield + Earth hanging in the black sky
+      // Starfield + Earth hanging in the sky
       buildStarfield();
       const earth = new THREE.Mesh(
         new THREE.SphereGeometry(2.4, 32, 24),
@@ -1455,7 +1552,7 @@
 
       window.addEventListener('resize', onWindowResize);
 
-      // Raycasting for clicking ground anywhere on 20m terrain to set target
+      // Raycasting for clicking ground anywhere on 5x7 tile terrain to set target
       const raycaster = new THREE.Raycaster();
       const mouse = new THREE.Vector2();
 
@@ -1468,7 +1565,7 @@
         const intersects = raycaster.intersectObject(terrainMesh);
         if (intersects.length > 0 && e.button === 0 && !e.shiftKey) {
           const pt = intersects[0].point;
-          if (Math.abs(pt.x) <= 9.75 && Math.abs(pt.z) <= 9.75) {
+          if (Math.abs(pt.x) <= ARENA_HALF_X - 0.05 && Math.abs(pt.z) <= ARENA_HALF_Y - 0.05) {
             goal.x = pt.x;
             goal.y = -pt.z;
             rover.success = false;
@@ -1478,7 +1575,7 @@
             trajectory = [{ x: rover.x, y: rover.y, z: rover.z }];
             pathLength = 0;
             showBanner(`NEW TARGET SET: Navigating to (${goal.x.toFixed(2)}, ${goal.y.toFixed(2)})`, "bg-cyan-950 text-cyan-300 border-cyan-600");
-            triggerLLMMissionUpdate(`Waypoint set to 3D expedition point (${goal.x.toFixed(2)}, ${goal.y.toFixed(2)}). Re-routing across 20m terrain.`);
+            triggerLLMMissionUpdate(`Waypoint set to 3D point (${goal.x.toFixed(2)}, ${goal.y.toFixed(2)}) on 5x7 tile arena.`);
           }
         }
       });
@@ -1490,22 +1587,20 @@
       const starPos = new Float32Array(starCount * 3);
       const starCol = new Float32Array(starCount * 3);
       for (let i = 0; i < starCount; i++) {
-        // Distribute on an outer hemisphere dome
         const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(Math.random() * 0.85 + 0.15); // Upper sky dome
+        const phi = Math.acos(Math.random() * 0.85 + 0.15);
         const radius = 75.0 + Math.random() * 25.0;
         starPos[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
         starPos[i * 3 + 1] = radius * Math.cos(phi);
         starPos[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
 
-        // Stellar temperature coloring: blue, white, amber
         const temp = Math.random();
         if (temp < 0.20) {
-          starCol[i * 3] = 0.75; starCol[i * 3 + 1] = 0.88; starCol[i * 3 + 2] = 1.0; // Blue star
+          starCol[i * 3] = 0.75; starCol[i * 3 + 1] = 0.88; starCol[i * 3 + 2] = 1.0;
         } else if (temp < 0.80) {
-          starCol[i * 3] = 0.95; starCol[i * 3 + 1] = 0.96; starCol[i * 3 + 2] = 0.98; // White star
+          starCol[i * 3] = 0.95; starCol[i * 3 + 1] = 0.96; starCol[i * 3 + 2] = 0.98;
         } else {
-          starCol[i * 3] = 1.0; starCol[i * 3 + 1] = 0.82; starCol[i * 3 + 2] = 0.60; // Amber star
+          starCol[i * 3] = 1.0; starCol[i * 3 + 1] = 0.82; starCol[i * 3 + 2] = 0.60;
         }
       }
       starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
@@ -1525,7 +1620,7 @@
       renderer.setSize(w, h);
     }
 
-    // --- Build 20m x 20m 3D Terrain Mesh ---
+    // --- Build 5x7 Tile (3.10m x 4.34m @ 62x62cm/tile) 3D Terrain Mesh ---
     function build3DTerrain() {
       if (terrainMesh) { scene.remove(terrainMesh); terrainMesh.geometry.dispose(); }
       if (outerTerrainMesh) { scene.remove(outerTerrainMesh); outerTerrainMesh.geometry.dispose(); }
@@ -1533,9 +1628,8 @@
 
       const grainTex = getRegolithGrainTexture();
 
-      // --- Inner 20m arena: 260x260 grid (~7.6cm resolution) with procedural albedo ---
-      const segments = 260;
-      const geometry = new THREE.PlaneGeometry(ARENA_SIZE_M, ARENA_SIZE_M, segments, segments);
+      // --- Inner 5x7 Tile Arena (3.10m wide x 4.34m long): 220x300 grid (~1.4cm resolution) ---
+      const geometry = new THREE.PlaneGeometry(ARENA_WIDTH_M, ARENA_LENGTH_M, 220, 300);
       geometry.rotateX(-Math.PI / 2);
       const pos = geometry.attributes.position;
       for (let i = 0; i < pos.count; i++) {
@@ -1546,62 +1640,61 @@
 
       const tex = grainTex.clone();
       tex.needsUpdate = true;
-      tex.repeat.set(48, 48);
+      tex.repeat.set(24, 34);
       const material = new THREE.MeshStandardMaterial({
         vertexColors: true,
         map: tex,
         bumpMap: tex,
-        bumpScale: 0.016,
-        roughness: 0.96,
-        metalness: 0.02
+        bumpScale: 0.005,
+        roughness: 0.88,
+        metalness: 0.04
       });
       terrainMesh = new THREE.Mesh(geometry, material);
       terrainMesh.receiveShadow = true;
       scene.add(terrainMesh);
 
-      // --- Extended horizon terrain (80m) so the world stretches into distant highland massifs ---
-      const outerGeo = new THREE.PlaneGeometry(80, 80, 160, 160);
+      // --- Surrounding 62x62cm Vitrified Ceramic Tile Classroom Floor (11.16m x 11.16m = 18x18 tiles) ---
+      const outerSize = 18 * TILE_SIZE_M; // 11.16m
+      const outerGeo = new THREE.PlaneGeometry(outerSize, outerSize, 144, 144);
       outerGeo.rotateX(-Math.PI / 2);
       const opos = outerGeo.attributes.position;
-      const arenaHalf = ARENA_SIZE_M / 2.0;
       for (let i = 0; i < opos.count; i++) {
         const x = opos.getX(i), wy = -opos.getZ(i);
-        const inside = Math.abs(x) < arenaHalf - 0.01 && Math.abs(wy) < arenaHalf - 0.01;
-        const distOut = Math.max(0, Math.max(Math.abs(x), Math.abs(wy)) - arenaHalf);
-        // Distant highland massifs swelling up to 1.8m toward the horizon
-        const massif = 1.6 * smoothstep(3.0, 28.0, distOut) * (0.6 + 0.4 * fbm(x * 0.05 + 3.0, wy * 0.05 - 9.0, 3));
-        opos.setY(i, getElevation(x, wy) + massif - (inside ? 0.35 : 0.005));
+        const inside = Math.abs(x) < ARENA_HALF_X - 0.005 && Math.abs(wy) < ARENA_HALF_Y - 0.005;
+        opos.setY(i, inside ? -0.025 : -0.002);
       }
       outerGeo.computeVertexNormals();
       applyTerrainVertexColors(outerGeo);
       const otex = grainTex.clone();
       otex.needsUpdate = true;
-      otex.repeat.set(160, 160);
+      otex.repeat.set(45, 45);
       outerTerrainMesh = new THREE.Mesh(outerGeo, new THREE.MeshStandardMaterial({
-        vertexColors: true, map: otex, roughness: 0.98, metalness: 0.0
+        vertexColors: true, map: otex, roughness: 0.35, metalness: 0.08
       }));
       outerTerrainMesh.receiveShadow = true;
       scene.add(outerTerrainMesh);
 
-      // --- Terrain-hugging arena boundary line ---
+      // --- Terrain-hugging 5x7 Tile Arena Perimeter Line (3.10m x 4.34m) ---
       const borderPts = [];
-      const half = arenaHalf - 0.03;
-      const corners = [[-half, -half], [half, -half], [half, half], [-half, half], [-half, -half]];
+      const hx = ARENA_HALF_X - 0.005;
+      const hy = ARENA_HALF_Y - 0.005;
+      const corners = [[-hx, -hy], [hx, -hy], [hx, hy], [-hx, hy], [-hx, -hy]];
       for (let k = 0; k < 4; k++) {
         const [ax, ay] = corners[k], [bx, by] = corners[k + 1];
-        for (let s = 0; s < 100; s++) {
-          const t = s / 100;
+        for (let s = 0; s < 80; s++) {
+          const t = s / 80;
           const px = ax + (bx - ax) * t, py = ay + (by - ay) * t;
-          borderPts.push(new THREE.Vector3(px, getElevation(px, py) + 0.012, -py));
+          borderPts.push(new THREE.Vector3(px, getElevation(px, py) + 0.004, -py));
         }
       }
       arenaBorderLine = new THREE.LineLoop(
         new THREE.BufferGeometry().setFromPoints(borderPts),
-        new THREE.LineBasicMaterial({ color: 0x0891b2, transparent: true, opacity: 0.65 })
+        new THREE.LineBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.75 })
       );
       scene.add(arenaBorderLine);
 
       build3DNakshatraRamp();
+      build3DPrescribedPath();
       build3DDebris();
       buildTrackMarks();
     }
@@ -1610,125 +1703,217 @@
     let outerTerrainMesh = null, arenaBorderLine = null, debrisMesh = null, nakshatraRampGroup = null;
     let regolithGrainTexture = null;
 
-    // Build 3D Replica of the Silver "NAKSHATRA" Lander Egress Ramp (Images 1 & 4, Upper-Right / East)
+    // Helper: Draw a 4-point yellow star on a 2D canvas context (matching the 4 yellow corner stars on NAKSHATRA ramp in 1.47.31 PM.jpeg)
+    function drawFourPointStar(ctx, cx, cy, outerR, innerR) {
+      ctx.save();
+      ctx.fillStyle = '#eab308';
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const ang = (i * Math.PI) / 4 - Math.PI / 2;
+        const rad = (i % 2 === 0) ? outerR : innerR;
+        const px = cx + Math.cos(ang) * rad;
+        const py = cy + Math.sin(ang) * rad;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Build 1:1 3D Replica of the "NAKSHATRA" Lander Ramp (Image 1.47.31 PM.jpeg) & Tilted "TIMES GLOBAL" Newspaper (Image 1.47.18 PM.jpeg)
     function build3DNakshatraRamp() {
       if (nakshatraRampGroup) {
         scene.remove(nakshatraRampGroup);
       }
       nakshatraRampGroup = new THREE.Group();
 
-      // Procedural high-resolution canvas texture for the "NAKSHATRA" metallic ramp plate
+      // 1. South/Front Sloped Fascia Texture: Hand-painted black "NAKSHATRA" + 4 yellow corner stars (exact match to 1.47.31 PM.jpeg)
       const cvs = document.createElement('canvas');
       cvs.width = 1024;
-      cvs.height = 512;
+      cvs.height = 384;
       const ctx = cvs.getContext('2d');
 
-      // Brushed silver-grey metallic base
-      const grad = ctx.createLinearGradient(0, 0, 1024, 512);
-      grad.addColorStop(0.0, '#cbd5e1');
-      grad.addColorStop(0.5, '#94a3b8');
-      grad.addColorStop(1.0, '#cbd5e1');
+      const grad = ctx.createLinearGradient(0, 0, 0, 384);
+      grad.addColorStop(0.0, '#94a3b8');
+      grad.addColorStop(0.5, '#8695a8');
+      grad.addColorStop(1.0, '#78879b');
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1024, 512);
+      ctx.fillRect(0, 0, 1024, 384);
 
-      // Subtle metallic brushing & tread lines
-      ctx.strokeStyle = 'rgba(71, 85, 105, 0.22)';
-      ctx.lineWidth = 3;
-      for (let x = 40; x < 1024; x += 48) {
-        ctx.beginPath();
-        ctx.moveTo(x, 24);
-        ctx.lineTo(x, 488);
-        ctx.stroke();
-      }
+      // 4 Yellow 4-Point Star Stickers in the 4 corners (matching 1.47.31 PM.jpeg)
+      drawFourPointStar(ctx, 56, 68, 28, 9);
+      drawFourPointStar(ctx, 968, 68, 28, 9);
+      drawFourPointStar(ctx, 52, 326, 30, 10);
+      drawFourPointStar(ctx, 970, 326, 30, 10);
 
-      // Rivet bolt heads along top & bottom edges
-      ctx.fillStyle = '#334155';
-      for (let x = 36; x < 1000; x += 64) {
-        ctx.beginPath(); ctx.arc(x, 26, 7, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(x, 486, 7, 0, Math.PI * 2); ctx.fill();
-      }
-
-      // Bold black "NAKSHATRA" stencil lettering across the ramp deck
-      ctx.save();
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '900 116px "Inter", "Arial Black", sans-serif';
+      // Bold black hand-painted "NAKSHATRA" lettering across the fascia
+      ctx.fillStyle = '#090d16';
+      ctx.font = '900 132px "Arial Narrow", "Impact", "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('NAKSHATRA', 512, 256);
-      ctx.restore();
+      ctx.fillText('NAKSHATRA', 512, 212);
 
-      const rampTex = new THREE.CanvasTexture(cvs);
-      rampTex.anisotropy = 4;
+      const fasciaTex = new THREE.CanvasTexture(cvs);
+      fasciaTex.anisotropy = 4;
 
       const metalMat = new THREE.MeshStandardMaterial({
-        color: 0xcbd5e1,
-        roughness: 0.42,
-        metalness: 0.65
+        color: 0x8e9cad,
+        roughness: 0.46,
+        metalness: 0.52
       });
-      const deckMat = new THREE.MeshStandardMaterial({
-        map: rampTex,
-        roughness: 0.45,
-        metalness: 0.55
-      });
-      const woodBlockMat = new THREE.MeshStandardMaterial({
-        color: 0x855836,
-        roughness: 0.90,
-        metalness: 0.05
+      const fasciaMat = new THREE.MeshStandardMaterial({
+        map: fasciaTex,
+        roughness: 0.48,
+        metalness: 0.45
       });
 
-      // Ramp inclined plate (Length = 2.6m, Width = 1.45m)
-      const rampLen = 2.60;
-      const rampWidth = 1.45;
-      const inclineGroup = new THREE.Group();
+      const rampGroupLocal = new THREE.Group();
+      const rampWidth = 0.96; // 96cm wide (~1.55 tiles)
 
-      const rampPlate = new THREE.Mesh(new THREE.BoxGeometry(rampLen, 0.035, rampWidth), deckMat);
-      rampPlate.castShadow = true;
-      rampPlate.receiveShadow = true;
-      inclineGroup.add(rampPlate);
+      // Upper/North Inclined Egress Deck (with 3 rows of raised metallic grip studs descending North onto the newspaper)
+      const northDeckLen = 0.30;
+      const northDeck = new THREE.Mesh(new THREE.BoxGeometry(rampWidth, 0.012, northDeckLen), metalMat);
+      northDeck.rotation.x = -0.175; // Slopes down toward North (-Z in Three.js)
+      northDeck.position.set(0, 0.031, -0.145);
+      northDeck.castShadow = true;
+      northDeck.receiveShadow = true;
+      rampGroupLocal.add(northDeck);
 
-      // Raised side guard flange rails along the ramp edges (visible in Image 1 & 4)
-      const railGeo = new THREE.BoxGeometry(rampLen, 0.095, 0.045);
-      const leftRail = new THREE.Mesh(railGeo, metalMat);
-      leftRail.position.set(0, 0.045, -rampWidth / 2 + 0.022);
-      leftRail.castShadow = true;
-      inclineGroup.add(leftRail);
+      // 3 Horizontal Rows of Raised Grip Studs on the North Egress Deck (visible in 1.47.31 PM.jpeg)
+      const studGeo = new THREE.CylinderGeometry(0.0045, 0.0055, 0.004, 8);
+      for (const rowZ of [-0.09, -0.15, -0.21]) {
+        const rowY = 0.058 - ((0.0 - rowZ) / 0.30) * 0.052;
+        for (let sx = -rampWidth * 0.44; sx <= rampWidth * 0.44; sx += 0.062) {
+          const stud = new THREE.Mesh(studGeo, metalMat);
+          stud.position.set(sx, rowY + 0.004, rowZ);
+          rampGroupLocal.add(stud);
+        }
+      }
 
-      const rightRail = new THREE.Mesh(railGeo, metalMat);
-      rightRail.position.set(0, 0.045, rampWidth / 2 - 0.022);
-      rightRail.castShadow = true;
-      inclineGroup.add(rightRail);
+      // South/Front Sloped Fascia displaying "NAKSHATRA" and the 4 yellow corner stars
+      const southFasciaLen = 0.30;
+      const southFascia = new THREE.Mesh(new THREE.PlaneGeometry(rampWidth, southFasciaLen), fasciaMat);
+      southFascia.rotation.x = -Math.PI / 2 + 0.11; // Gently sloped toward viewer in South
+      southFascia.position.set(0, 0.044, 0.145);
+      southFascia.receiveShadow = true;
+      rampGroupLocal.add(southFascia);
 
-      // Pitch ramp down toward the arena floor (-X local direction = down-ramp toward rover startPos)
-      const rampPitch = 0.22; // ~12.6 deg incline
-      inclineGroup.rotation.z = rampPitch;
-      inclineGroup.position.set(0, 0.28, 0);
-      nakshatraRampGroup.add(inclineGroup);
+      // Side metallic enclosure walls of the ramp box
+      const sideWallGeo = new THREE.BoxGeometry(0.014, 0.054, 0.58);
+      const leftWall = new THREE.Mesh(sideWallGeo, metalMat);
+      leftWall.position.set(-rampWidth / 2 + 0.007, 0.027, 0);
+      rampGroupLocal.add(leftWall);
+      const rightWall = new THREE.Mesh(sideWallGeo, metalMat);
+      rightWall.position.set(rampWidth / 2 - 0.007, 0.027, 0);
+      rampGroupLocal.add(rightWall);
 
-      // Upper flat lander egress platform at the top of the ramp
-      const upperDeck = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.04, rampWidth), metalMat);
-      upperDeck.position.set(1.68, 0.56, 0);
-      upperDeck.castShadow = true;
-      upperDeck.receiveShadow = true;
-      nakshatraRampGroup.add(upperDeck);
+      // Place NAKSHATRA ramp at bottom-right (sim x: +0.95, y: -1.78 -> Three.js x: +0.95, z: +1.78), rotated +7 deg CCW
+      rampGroupLocal.position.set(0.95, 0.0, 1.78);
+      rampGroupLocal.rotation.y = 0.12;
+      nakshatraRampGroup.add(rampGroupLocal);
 
-      // Wooden support blocks & pillars underneath the ramp (visible in Image 1 & 4)
-      const block1 = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.54, rampWidth * 0.88), woodBlockMat);
-      block1.position.set(1.55, 0.27, 0);
-      block1.castShadow = true;
-      nakshatraRampGroup.add(block1);
+      // 2. Tilted Loose Newspaper Sheet ("TIMES GLOBAL") on Lower-Left Tan Pebble Apron (Images 1, 2, 10, 11)
+      const newsCvs = document.createElement('canvas');
+      newsCvs.width = 512;
+      newsCvs.height = 384;
+      const nCtx = newsCvs.getContext('2d');
+      nCtx.fillStyle = '#e5e5e0';
+      nCtx.fillRect(0, 0, 512, 384);
+      // Newspaper header & columns
+      nCtx.fillStyle = '#1e293b';
+      nCtx.font = 'bold 22px serif';
+      nCtx.fillText('TIMES GLOBAL', 24, 34);
+      nCtx.fillRect(20, 42, 472, 2);
+      for (let col = 0; col < 5; col++) {
+        const cx = 22 + col * 94;
+        nCtx.fillStyle = '#94a3b8';
+        for (let lineY = 56; lineY < 365; lineY += 9) {
+          nCtx.fillRect(cx, lineY, 82, 4);
+        }
+      }
+      // Blue/cyan photo insets on the tilted newspaper page
+      nCtx.fillStyle = '#2563eb';
+      nCtx.fillRect(116, 80, 82, 58);
+      nCtx.fillStyle = '#0284c7';
+      nCtx.fillRect(304, 160, 82, 64);
+      nCtx.fillStyle = '#15803d';
+      nCtx.fillRect(210, 260, 82, 54);
 
-      const block2 = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.30, rampWidth * 0.85), woodBlockMat);
-      block2.position.set(0.35, 0.15, 0);
-      block2.castShadow = true;
-      nakshatraRampGroup.add(block2);
-
-      // Position ramp on the Right/East side (sim x: 6.9, y: 2.95 -> Three.js x: 6.9, z: -2.95)
-      // Angled so the ramp descends toward startPos (5.2, 2.1)
-      const baseElev = getElevation(6.9, 2.95);
-      nakshatraRampGroup.position.set(6.9, baseElev, -2.95);
-      nakshatraRampGroup.rotation.y = -0.38; // Angled toward central-west arena matching Image 1 & 4
+      const tiltedNewsTex = new THREE.CanvasTexture(newsCvs);
+      const tiltedNewsMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.46, 0.34),
+        new THREE.MeshStandardMaterial({ map: tiltedNewsTex, roughness: 0.90, metalness: 0.02, side: THREE.DoubleSide })
+      );
+      tiltedNewsMesh.rotation.x = -Math.PI / 2;
+      tiltedNewsMesh.rotation.z = 0.38; // Tilted ~22 deg counter-clockwise matching 1.47.18 PM.jpeg
+      tiltedNewsMesh.position.set(-0.56, getElevation(-0.56, -0.34) + 0.008, 0.34);
+      tiltedNewsMesh.receiveShadow = true;
+      nakshatraRampGroup.add(tiltedNewsMesh);
 
       scene.add(nakshatraRampGroup);
+    }
+
+    // Build 3D Prescribed Red Mission Path Ribbon, Directional Arrows, "Start" & "end" Markers (from WhatsApp Image 1.47.11 PM.jpeg)
+    function build3DPrescribedPath() {
+      if (prescribedPathGroup) {
+        scene.remove(prescribedPathGroup);
+      }
+      prescribedPathGroup = new THREE.Group();
+
+      // 1. Continuous 3D Red Path Ribbon hugging terrain elevation
+      const curvePts = [];
+      for (let i = 0; i < NAKSHATRA_PRESCRIBED_PATH.length; i++) {
+        const wp = NAKSHATRA_PRESCRIBED_PATH[i];
+        curvePts.push(new THREE.Vector3(wp.x, getElevation(wp.x, wp.y) + 0.009, -wp.y));
+      }
+      const catmull = new THREE.CatmullRomCurve3(curvePts, false, 'catmullrom', 0.22);
+      const sampledPts = catmull.getPoints(320);
+      // Re-clamp Y to exact terrain elevation + 9mm so the red path never clips underground over the Ring Crater rim
+      for (let i = 0; i < sampledPts.length; i++) {
+        const px = sampledPts[i].x;
+        const py = -sampledPts[i].z;
+        sampledPts[i].y = getElevation(px, py) + 0.009;
+      }
+
+      const tubeGeo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(sampledPts), 260, 0.014, 6, false);
+      const tubeMat = new THREE.MeshBasicMaterial({ color: 0xff1e27, transparent: true, opacity: 0.88 });
+      const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+      prescribedPathGroup.add(tubeMesh);
+
+      // 2. Directional Red Arrow Chevrons along the path (matching the hand-drawn red arrows in 1.47.11 PM.jpeg)
+      const arrowIndices = [2, 5, 8, 11, 15, 17, 20, 23, 26, 28];
+      const coneGeo = new THREE.ConeGeometry(0.036, 0.085, 10);
+      coneGeo.rotateX(Math.PI / 2); // Point along +Z local
+      const coneMat = new THREE.MeshBasicMaterial({ color: 0xff2a2a });
+      for (const idx of arrowIndices) {
+        if (idx < NAKSHATRA_PRESCRIBED_PATH.length - 1) {
+          const a = NAKSHATRA_PRESCRIBED_PATH[idx];
+          const b = NAKSHATRA_PRESCRIBED_PATH[idx + 1];
+          const mx = (a.x + b.x) * 0.5;
+          const my = (a.y + b.y) * 0.5;
+          const mz = getElevation(mx, my) + 0.016;
+          const arrowMesh = new THREE.Mesh(coneGeo, coneMat);
+          arrowMesh.position.set(mx, mz, -my);
+          arrowMesh.lookAt(b.x, getElevation(b.x, b.y) + 0.016, -b.y);
+          prescribedPathGroup.add(arrowMesh);
+        }
+      }
+
+      // 3. Red "START" Ring on Right ('RA') of NAKSHATRA Ramp & Red "END" Ring on Left ('NA') of NAKSHATRA Ramp
+      const startWP = NAKSHATRA_PRESCRIBED_PATH[0];
+      const endWP = NAKSHATRA_PRESCRIBED_PATH[NAKSHATRA_PRESCRIBED_PATH.length - 1];
+      const ringGeo = new THREE.RingGeometry(0.045, 0.072, 24);
+      ringGeo.rotateX(-Math.PI / 2);
+      const startRing = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xff1e27, side: THREE.DoubleSide }));
+      startRing.position.set(startWP.x, getElevation(startWP.x, startWP.y) + 0.012, -startWP.y);
+      prescribedPathGroup.add(startRing);
+
+      const endRing = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xff1e27, side: THREE.DoubleSide }));
+      endRing.position.set(endWP.x, getElevation(endWP.x, endWP.y) + 0.012, -endWP.y);
+      prescribedPathGroup.add(endRing);
+
+      scene.add(prescribedPathGroup);
     }
 
     // Procedural regolith grain texture (fine sand speckle + clods) used as albedo & bump
@@ -1745,7 +1930,6 @@
         img.data[i * 4] = v; img.data[i * 4 + 1] = v; img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255;
       }
       ctx.putImageData(img, 0, 0);
-      // Small clods & micro-pits
       for (let k = 0; k < 420; k++) {
         const x = rng() * size, y = rng() * size, r = 0.6 + rng() * 2.2;
         const shade = rng() < 0.5 ? 150 + rng() * 40 : 235 + rng() * 20;
@@ -1770,7 +1954,7 @@
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     }
 
-    // Instanced 3D gravel & pebble beds: 6,500 pebbles across the Nakshatra Basalt Beds, Foreground Crater Blanket & Sand Strip
+    // Instanced 3D gravel & pebble beds: 6,500 pebbles across the 5x7 Tile (3.10m x 4.34m) Nakshatra Arena
     function build3DDebris() {
       if (debrisMesh) { scene.remove(debrisMesh); debrisMesh.geometry.dispose(); debrisMesh.material.dispose(); }
       const rng = mulberry32((terrainSeed * 31 + 7) >>> 0);
@@ -1781,55 +1965,45 @@
       const dummy = new THREE.Object3D();
       const col = new THREE.Color();
       let placed = 0, guard = 0;
-      const halfLimit = ARENA_SIZE_M / 2.0 - 0.15;
       while (placed < count && guard++ < count * 5) {
         let x, y, s, zoneColorType = 'tan';
         const mode = rng();
         if (mode < 0.28) {
-          // Zone 2: Left (West) dark blue-grey crushed basalt gravel strip
-          x = -8.6 + rng() * 2.7;
-          y = -3.4 + rng() * 9.5;
-          s = 0.014 + rng() * 0.032;
+          // 1. Top (North) Dark Blue-Grey Crushed Basalt Gravel Strip on Cardboard (x in [-0.58, +0.98], y in [+1.48, +2.02])
+          x = -0.57 + rng() * 1.54;
+          y = 1.48 + rng() * 0.53;
+          s = 0.0045 + rng() * 0.0085;
           zoneColorType = 'basalt';
-        } else if (mode < 0.56) {
-          // Zone 3: Right (East) dark blue-grey crushed basalt gravel patch
-          x = 1.9 + rng() * 4.1;
-          y = -4.2 + rng() * 4.9;
-          // Respect lower-left V-notch in the right basalt patch
-          if (x < 3.4 && y < -2.3) continue;
-          s = 0.014 + rng() * 0.032;
+        } else if (mode < 0.58) {
+          // 2. Lower-Center Dark Blue-Grey Crushed Basalt Gravel Patch (x in [-0.26, +0.68], y in [-1.36, -0.36])
+          x = -0.25 + rng() * 0.92;
+          const peakLift = 0.15 * Math.exp(-Math.pow((x + 0.06) / 0.14, 2));
+          y = -1.35 + rng() * (0.98 + peakLift);
+          s = 0.0045 + rng() * 0.0085;
           zoneColorType = 'basalt';
-        } else if (mode < 0.86) {
-          // Zone 4: Foreground (South) Giant Sculpted Ring Crater rim & coarse tan river-pebble blanket
+        } else if (mode < 0.88) {
+          // 3. Mid-Left Giant Sculpted Ring Crater & Coarse Tan Pebble Blanket (center: -0.68, +0.35)
           if (rng() < 0.55) {
             const ang = rng() * Math.PI * 2;
-            const rad = 2.15 * (0.38 + rng() * 1.15);
-            x = -1.8 + Math.cos(ang) * rad;
-            y = -5.5 + Math.sin(ang) * rad;
+            const rad = 0.44 * (0.28 + rng() * 1.15);
+            x = -0.68 + Math.cos(ang) * rad;
+            y = 0.35 + Math.sin(ang) * rad;
           } else {
-            x = -4.2 + rng() * 7.2;
-            y = -8.6 + rng() * 6.2;
+            x = -1.14 + rng() * 0.94;
+            y = -0.52 + rng() * 1.44;
           }
-          s = 0.016 + rng() * 0.038;
+          // Leave central rectangular newspaper patch inside crater bowl exposed (matching 1.47.18 PM.jpeg)
+          if (Math.abs(x + 0.68) < 0.12 && Math.abs(y - 0.35) < 0.07) continue;
+          s = 0.005 + rng() * 0.0095;
           zoneColorType = 'tan_pebble';
-        } else if (mode < 0.95) {
-          // Zone 1: Top (North) brown sand strip soil clods & small brick fragments
-          x = -5.5 + rng() * 7.9;
-          y = 2.9 + rng() * 4.6;
-          s = 0.012 + rng() * 0.028;
-          zoneColorType = 'brown_sand';
         } else {
-          // Central newspaper corridor scattered small pebbles around boulders
-          const b = boulders[Math.floor(rng() * boulders.length)];
-          const ang = rng() * Math.PI * 2;
-          const dist = b.r * (1.08 + rng() * 1.6);
-          x = b.x + Math.cos(ang) * dist;
-          y = b.y + Math.sin(ang) * dist;
-          s = 0.010 + rng() * 0.024;
-          zoneColorType = 'tan_pebble';
+          // 4. Right-Side Long Brown Fine Sand & Soil Strip clods & granules (x in [+0.43, +1.45], y in [-0.44, +1.44])
+          x = 0.43 + rng() * 1.01;
+          y = -0.44 + rng() * 1.88;
+          s = 0.0035 + rng() * 0.0075;
+          zoneColorType = 'brown_sand';
         }
-        if (Math.abs(x) > halfLimit || Math.abs(y) > halfLimit) continue;
-        if (boulders.some(b => Math.hypot(x - b.x, y - b.y) < b.r + 0.02)) continue;
+        if (Math.abs(x) > ARENA_HALF_X - 0.04 || Math.abs(y) > ARENA_HALF_Y - 0.04) continue;
         dummy.position.set(x, getElevation(x, y) + s * 0.32, -y);
         dummy.rotation.set(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI);
         dummy.scale.set(s * (0.75 + rng() * 0.55), s * (0.48 + rng() * 0.42), s * (0.75 + rng() * 0.55));
@@ -1838,7 +2012,7 @@
 
         const v = (rng() - 0.5) * 0.10;
         if (zoneColorType === 'basalt') {
-          col.setRGB(0.19 + v * 0.7, 0.24 + v * 0.8, 0.30 + v);
+          col.setRGB(0.20 + v * 0.7, 0.25 + v * 0.8, 0.30 + v);
         } else if (zoneColorType === 'brown_sand') {
           col.setRGB(0.54 + v, 0.37 + v * 0.8, 0.23 + v * 0.6);
         } else {
@@ -2467,29 +2641,29 @@
       }
     }
 
-    // --- Build 3D Goal Marker ---
+    // --- Build 3D Active Waypoint Beacon ---
     function build3DGoalMarker() {
       if (goalMarker) scene.remove(goalMarker);
 
       goalMarker = new THREE.Group();
 
-      const starGeo = new THREE.OctahedronGeometry(0.18, 0);
+      const starGeo = new THREE.OctahedronGeometry(0.042, 0);
       const starMat = new THREE.MeshBasicMaterial({ color: 0xeab308 });
       const starMesh = new THREE.Mesh(starGeo, starMat);
-      starMesh.position.y = 0.6;
+      starMesh.position.y = 0.22;
       goalMarker.add(starMesh);
 
-      const beamGeo = new THREE.CylinderGeometry(0.008, 0.008, 1.2, 8);
+      const beamGeo = new THREE.CylinderGeometry(0.0035, 0.0035, 0.24, 8);
       const beamMat = new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.65 });
       const beamMesh = new THREE.Mesh(beamGeo, beamMat);
-      beamMesh.position.y = 0.6;
+      beamMesh.position.y = 0.12;
       goalMarker.add(beamMesh);
 
-      const ringGeo = new THREE.RingGeometry(0.25, 0.32, 28);
+      const ringGeo = new THREE.RingGeometry(0.065, 0.088, 28);
       ringGeo.rotateX(-Math.PI / 2);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xeab308, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xeab308, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
       const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-      ringMesh.position.y = 0.01;
+      ringMesh.position.y = 0.008;
       goalMarker.add(ringMesh);
 
       updateGoalMarkerPosition();
@@ -2497,7 +2671,6 @@
     }
 
     function updateGoalMarkerPosition() {
-      // FIXED: goal.y is 2D coordinate, must not invert sign twice
       const gz = getElevation(goal.x, goal.y);
       goalMarker.position.set(goal.x, gz, -goal.y);
     }
@@ -2526,7 +2699,7 @@
       geo.setDrawRange(0, 0);
 
       const mat = new THREE.PointsMaterial({
-        size: 0.055,
+        size: 0.022,
         vertexColors: true,
         transparent: true,
         opacity: 0.92,
@@ -2780,6 +2953,9 @@
     }
 
     function resetRoverState() {
+      currentWaypointIndex = 1;
+      startPos = { x: NAKSHATRA_PRESCRIBED_PATH[0].x, y: NAKSHATRA_PRESCRIBED_PATH[0].y };
+      goal = { x: NAKSHATRA_PRESCRIBED_PATH[1].x, y: NAKSHATRA_PRESCRIBED_PATH[1].y };
       rover.x = startPos.x;
       rover.y = startPos.y;
       rover.z = getElevation(rover.x, rover.y);
@@ -2790,11 +2966,14 @@
       rover.omega = 0;
       rover.pitch = 0;
       rover.roll = 0;
-      rover.clearance_mm = 20.0;
+      rover.clearance_mm = 22.0;
       rover.speed_limit = 1.0;
       rover.alive = true;
       rover.success = false;
       resetNavState();
+      if (typeof updateGoalMarkerPosition === 'function' && goalMarker) {
+        updateGoalMarkerPosition();
+      }
 
       // Reset mission watchdog anchor
       attemptStartTime = performance.now();
@@ -2807,7 +2986,7 @@
 
       trajectory = [{ x: rover.x, y: rover.y, z: rover.z }];
       pathLength = 0;
-      document.getElementById('status-banner').textContent = "20M LUNAR EXPEDITION IN PROGRESS";
+      document.getElementById('status-banner').textContent = `5×7 TILE NAKSHATRA RED PATH: WP 1/${NAKSHATRA_PRESCRIBED_PATH.length - 1} (${NAKSHATRA_PRESCRIBED_PATH[1].label})`;
       document.getElementById('status-banner').className = "absolute bottom-12 right-3 px-3 py-1 rounded text-xs font-bold font-mono bg-emerald-950 text-emerald-300 border border-emerald-700 z-10";
       updateDemoBadgeUI();
     }
@@ -2819,7 +2998,8 @@
     // Physical 3D Laser Raymarching against Continuous Lunar Regolith & 3D Boulders
     function castPhysical3DRay(orig, dir, maxRange = 2.6) {
       const stepDt = 0.045; // 4.5 cm step resolution along beam
-      const wallLimit = ARENA_SIZE_M / 2.0 - 0.28;
+      const wallLimitX = ARENA_HALF_X + 1.50;
+      const wallLimitY = ARENA_HALF_Y + 1.50;
       let prevX = orig.x, prevY = orig.y, prevZ = orig.z;
       let prevGroundZ = getElevation(prevX, prevY);
 
@@ -2828,8 +3008,8 @@
         const ry = orig.y + t * dir.y;
         const rz = orig.z + t * dir.z;
 
-        // 1. Boundary Wall Intersection
-        if (Math.abs(rx) > wallLimit || Math.abs(ry) > wallLimit) {
+        // 1. Boundary Wall Intersection (5x7 Tile Arena Perimeter: 3.10m x 4.34m)
+        if (Math.abs(rx) > wallLimitX || Math.abs(ry) > wallLimitY) {
           return {
             hit: true,
             dist: t,
@@ -3083,9 +3263,10 @@
     function getSensorRays() {
       const numRays = 15;
       const fov = (110 * Math.PI) / 180;
-      const maxRange = 2.4;
+      const maxRange = 1.65;
       const rays = [];
-      const wallLimit = ARENA_SIZE_M / 2.0 - 0.28;
+      const wallLimitX = ARENA_HALF_X + 1.50;
+      const wallLimitY = ARENA_HALF_Y + 1.50;
 
       // 1. Initialize 15 Navigation Sectors (from -55 deg to +55 deg)
       for (let i = 0; i < numRays; i++) {
@@ -3234,7 +3415,7 @@
         for (let t = 0.10; t < s.dist; t += 0.06) {
           const rx = rover.x + t * cosA;
           const ry = rover.y + t * sinA;
-          if (Math.abs(rx) > wallLimit || Math.abs(ry) > wallLimit) {
+          if (Math.abs(rx) > wallLimitX || Math.abs(ry) > wallLimitY) {
             s.dist = t;
             s.type = 'boulder';
             break;
@@ -3385,58 +3566,84 @@
       }
     }
 
-    // --- Hybrid VFH+ Polar Histogram + Tangential Vortex Field + RBF Kernel Continual Learning ---
+    // --- Prescribed Red Path Pure-Pursuit + Dual-ToF LiDAR & PCA Sensor-Fused Controller ---
     function computeLowLevelPPO(rays) {
       const now = performance.now();
 
-      // Multi-Corridor Guidance Target (Supports Active Path Diversification: 2-3 attempts per path)
-      const corr = getActiveCorridor();
+      // Target the active waypoint along NAKSHATRA_PRESCRIBED_PATH with smooth carrot lookahead
       let guidanceTarget = { x: goal.x, y: goal.y };
-
-      if (Math.abs(corr.offset) > 0.1) {
-        const totalDx = goal.x - startPos.x;
-        const totalDy = goal.y - startPos.y;
-        const totalDist = Math.hypot(totalDx, totalDy) || 1.0;
-        const perpX = -totalDy / totalDist;
-        const perpY = totalDx / totalDist;
-
-        // Intermediate tactical waypoint shifted laterally across 20m terrain
-        const midX = (startPos.x + goal.x) * 0.5 + perpX * corr.offset;
-        const midY = (startPos.y + goal.y) * 0.5 + perpY * corr.offset;
-
-        const distToMid = Math.hypot(midX - rover.x, midY - rover.y);
-        const fwdRover = (rover.x - startPos.x) * totalDx + (rover.y - startPos.y) * totalDy;
-        const fwdMid = (midX - startPos.x) * totalDx + (midY - startPos.y) * totalDy;
-
-        if (distToMid > 1.3 && fwdRover < fwdMid + 0.8) {
-          guidanceTarget = { x: midX, y: midY };
-        }
+      const distToGoal = Math.hypot(goal.x - rover.x, goal.y - rover.y);
+      if (distToGoal < 0.22 && currentWaypointIndex < NAKSHATRA_PRESCRIBED_PATH.length - 1) {
+        const nextWp = NAKSHATRA_PRESCRIBED_PATH[currentWaypointIndex + 1];
+        const blend = Math.max(0, Math.min(0.45, (0.22 - distToGoal) / 0.22));
+        guidanceTarget = {
+          x: goal.x * (1.0 - blend) + nextWp.x * blend,
+          y: goal.y * (1.0 - blend) + nextWp.y * blend
+        };
       }
 
       const dx = guidanceTarget.x - rover.x;
       const dy = guidanceTarget.y - rover.y;
-      const distToGoal = Math.hypot(goal.x - rover.x, goal.y - rover.y);
       const targetAngle = Math.atan2(dy, dx);
       const headingErr = normalizeAngle(targetAngle - rover.yaw);
 
-      //Right hemisphere rays: indices 0..6 (angleOffset < 0)
-      //Center rays: indices 5..9
-      //Left hemisphere rays: indices 8..14 (angleOffset > 0)
+      // Right hemisphere rays: indices 0..6 (angleOffset < 0)
+      // Center rays: indices 5..9
+      // Left hemisphere rays: indices 8..14 (angleOffset > 0)
       const rightClearance = rays.slice(0, 7).reduce((acc, r) => acc + r.normDist, 0) / 7.0;
       const leftClearance = rays.slice(8, 15).reduce((acc, r) => acc + r.normDist, 0) / 7.0;
       const minCenterDist = Math.min(...rays.slice(5, 10).map(r => r.dist));
       const minOverallDist = Math.min(...rays.map(r => r.dist));
 
-      // =========================================================================
-      // FEATURE 1: SPATIAL BREADCRUMB MEMORY (PREVENT RECHOOSING RECENT PATHS)
-      // =========================================================================
+      // Record spatial breadcrumb trail for radar visualization
       if (now - navState.lastTrailSample > 160) {
         navState.lastTrailSample = now;
         navState.visitedTrail.push({ x: rover.x, y: rover.y, t: now });
-        if (navState.visitedTrail.length > 120) navState.visitedTrail.shift();
+        if (navState.visitedTrail.length > 140) navState.visitedTrail.shift();
       }
 
-      // Track distance to goal improvements
+      // Active suspension clearance adaptation from real-time PCA slope & Nakshatra terrain zone
+      const zw = getNakshatraZoneWeights(rover.x, rover.y);
+      const pcaSlope = (pcaPlaneData && typeof pcaPlaneData.slopeDeg === 'number') ? pcaPlaneData.slopeDeg : 0;
+      if (pcaSlope > 12.0 || zw.tanPebble > 0.3 || zw.ramp > 0.2) {
+        rover.clearance_mm = 28.0; // High clearance for Giant Ring Crater rim & Nakshatra ramp
+      } else if (zw.topGravel > 0.3 || zw.midGravel > 0.3) {
+        rover.clearance_mm = 24.0; // Medium-high clearance on dark basalt gravel patches
+      } else {
+        rover.clearance_mm = 20.0; // Nominal clearance on sand strip & newspaper corridor
+      }
+
+      // Local ToF LiDAR boulder safety nudge if a physical stone is within 14cm of the front bumper
+      let obsBias = 0.0;
+      const centerBoulderRays = rays.slice(5, 10).filter(r => r.type === 'boulder' && r.dist < 0.16);
+      if (centerBoulderRays.length > 0) {
+        const closestB = Math.min(...centerBoulderRays.map(r => r.dist));
+        const avoidSign = (leftClearance >= rightClearance) ? 1.0 : -1.0;
+        obsBias = avoidSign * ((0.16 - closestB) / 0.16) * 0.45;
+      }
+
+      // In-place tank pivot when heading error exceeds 44 deg (0.77 rad) at tight U-turns
+      if (Math.abs(headingErr) > 0.77) {
+        const pivotDir = Math.sign(headingErr) || 1;
+        return {
+          left: -0.68 * pivotDir,
+          right: 0.68 * pivotDir
+        };
+      }
+
+      const steer = THREE.MathUtils.clamp(headingErr * 1.42 + obsBias, -0.88, 0.88);
+      navState.lastSteerAngle = steer;
+
+      const turnSlowdown = Math.max(0.45, 1.0 - Math.abs(steer) * 0.42);
+      const speed = THREE.MathUtils.clamp(0.86 * turnSlowdown * rover.speed_limit, 0.38, 0.92);
+
+      const leftCmd = Math.max(-1.0, Math.min(1.0, speed - steer * 0.58));
+      const rightCmd = Math.max(-1.0, Math.min(1.0, speed + steer * 0.58));
+      return { left: leftCmd, right: rightCmd };
+    }
+
+    // Legacy VFH+ reference helper (unused in prescribed path mode)
+    function _legacyVFHStub(now, distToGoal, rightClearance, leftClearance, minCenterDist, minOverallDist, headingErr, targetAngle, rays) {
       if (navState.bestDistToGoal === Infinity || distToGoal < navState.bestDistToGoal - 0.15) {
         navState.bestDistToGoal = distToGoal;
         navState.lastProgressTime = now;
@@ -4632,98 +4839,85 @@
       }
     }
 
-    // --- Draw Tactical Mini-Map Radar (20m Overview) ---
+    // --- Draw Tactical Mini-Map Radar (5x7 Tiles @ 62x62cm = 3.10m x 4.34m Overview) ---
     const radarCanvas = document.getElementById('radarCanvas');
     const rCtx = radarCanvas.getContext('2d');
 
     function drawTacticalRadar() {
       rCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
-      const halfA = ARENA_SIZE_M / 2.0;
 
-      function toRx(x) { return (x + halfA) / ARENA_SIZE_M * radarCanvas.width; }
-      function toRy(y) { return (-y + halfA) / ARENA_SIZE_M * radarCanvas.height; }
+      function toRx(x) { return (x + ARENA_HALF_X) / ARENA_WIDTH_M * radarCanvas.width; }
+      function toRy(y) { return (-y + ARENA_HALF_Y) / ARENA_LENGTH_M * radarCanvas.height; }
 
-      // Radar Crosshairs
-      rCtx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+      // 1. Exact 5x7 Tile Grout Grid (62cm x 62cm per tile)
+      rCtx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
       rCtx.lineWidth = 1;
-      rCtx.beginPath();
-      rCtx.moveTo(radarCanvas.width / 2, 0); rCtx.lineTo(radarCanvas.width / 2, radarCanvas.height);
-      rCtx.moveTo(0, radarCanvas.height / 2); rCtx.lineTo(radarCanvas.width, radarCanvas.height / 2);
-      rCtx.stroke();
-
-      // Tactical Concentric Distance Range Rings (5m, 10m, 15m)
-      rCtx.lineWidth = 1;
-      for (const distM of [5, 10, 15]) {
-        const ringPix = (distM / ARENA_SIZE_M) * (radarCanvas.width / 2);
-        rCtx.strokeStyle = distM === 10 ? 'rgba(56, 189, 248, 0.28)' : 'rgba(100, 116, 139, 0.18)';
+      for (let tx = 0; tx <= ARENA_TILES_X; tx++) {
+        const xM = -ARENA_HALF_X + tx * TILE_SIZE_M;
+        const px = toRx(xM);
         rCtx.beginPath();
-        rCtx.arc(radarCanvas.width / 2, radarCanvas.height / 2, ringPix, 0, Math.PI * 2);
+        rCtx.moveTo(px, 0);
+        rCtx.lineTo(px, radarCanvas.height);
         rCtx.stroke();
-        rCtx.fillStyle = 'rgba(148, 163, 184, 0.45)';
-        rCtx.font = '7px monospace';
-        rCtx.textAlign = 'left';
-        rCtx.fillText(`${distM}m`, radarCanvas.width / 2 + ringPix + 2, radarCanvas.height / 2 - 2);
+      }
+      for (let ty = 0; ty <= ARENA_TILES_Y; ty++) {
+        const yM = -ARENA_HALF_Y + ty * TILE_SIZE_M;
+        const py = toRy(yM);
+        rCtx.beginPath();
+        rCtx.moveTo(0, py);
+        rCtx.lineTo(radarCanvas.width, py);
+        rCtx.stroke();
       }
 
-      // --- Nakshatra Physical Arena Zones on Tactical Radar ---
-      // 1. Top Brown Fine Sand Strip
-      rCtx.fillStyle = 'rgba(180, 120, 72, 0.25)';
-      rCtx.fillRect(toRx(-5.8), toRy(7.8), toRx(2.6) - toRx(-5.8), toRy(2.7) - toRy(7.8));
-      // 2. Left Dark Blue-Grey Basalt Gravel Strip
-      rCtx.fillStyle = 'rgba(56, 72, 92, 0.42)';
-      rCtx.fillRect(toRx(-8.8), toRy(6.2), toRx(-5.7) - toRx(-8.8), toRy(-3.6) - toRy(6.2));
-      // 3. Right Dark Blue-Grey Basalt Gravel Patch
-      rCtx.fillRect(toRx(1.8), toRy(0.9), toRx(6.2) - toRx(1.8), toRy(-4.5) - toRy(0.9));
-      // 4. Bottom Coarse Tan Pebble Blanket
-      rCtx.fillStyle = 'rgba(194, 158, 118, 0.22)';
-      rCtx.fillRect(toRx(-4.4), toRy(-2.1), toRx(3.2) - toRx(-4.4), toRy(-8.8) - toRy(-2.1));
-      // 5. Silver "NAKSHATRA" Lander Ramp
-      rCtx.save();
-      rCtx.translate(toRx(6.9), toRy(2.95));
-      rCtx.rotate(0.38);
-      rCtx.fillStyle = 'rgba(203, 213, 225, 0.80)';
-      rCtx.strokeStyle = '#38bdf8';
+      // --- Nakshatra Physical Arena Zones on Tactical Radar (1:1 5x7 Tile Coordinates) ---
+      // A. Right Brown Fine Sand Strip
+      rCtx.fillStyle = 'rgba(180, 120, 72, 0.35)';
+      rCtx.fillRect(toRx(0.54), toRy(1.78), toRx(1.42) - toRx(0.54), toRy(-0.98) - toRy(1.78));
+      // B. Top Dark Blue-Grey Basalt Gravel Strip on Cardboard
+      rCtx.fillStyle = 'rgba(56, 72, 92, 0.50)';
+      rCtx.fillRect(toRx(-1.25), toRy(1.92), toRx(1.05) - toRx(-1.25), toRy(1.22) - toRy(1.92));
+      // C. Lower-Center Dark Blue-Grey Basalt Gravel Patch
+      rCtx.fillRect(toRx(-0.48), toRy(-0.56), toRx(0.28) - toRx(-0.48), toRy(-1.26) - toRy(-0.56));
+      // D. Mid-Left Coarse Tan Pebble Blanket (around Giant Ring Crater)
+      rCtx.fillStyle = 'rgba(194, 158, 118, 0.32)';
+      rCtx.fillRect(toRx(-1.28), toRy(0.95), toRx(-0.08) - toRx(-1.28), toRy(-0.22) - toRy(0.95));
+      // E. Left White Chart-Paper Corridor
+      rCtx.fillStyle = 'rgba(241, 245, 249, 0.25)';
+      rCtx.fillRect(toRx(-1.26), toRy(-0.22), toRx(-0.46) - toRx(-1.26), toRy(-1.74) - toRy(-0.22));
+      // F. Silver "NAKSHATRA" Lander Ramp at Bottom-Right (0.91, -1.62)
+      rCtx.fillStyle = 'rgba(226, 232, 240, 0.85)';
+      rCtx.strokeStyle = '#eab308';
       rCtx.lineWidth = 1;
-      const rw = (2.6 / ARENA_SIZE_M) * radarCanvas.width;
-      const rh = (1.45 / ARENA_SIZE_M) * radarCanvas.height;
-      rCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
-      rCtx.strokeRect(-rw / 2, -rh / 2, rw, rh);
-      rCtx.restore();
+      const rx0 = toRx(0.91 - 0.33);
+      const ry0 = toRy(-1.62 + 0.23);
+      const rw = toRx(0.91 + 0.33) - rx0;
+      const rh = toRy(-1.62 - 0.23) - ry0;
+      rCtx.fillRect(rx0, ry0, rw, rh);
+      rCtx.strokeRect(rx0, ry0, rw, rh);
 
-      // Topographic Hills & Uphill Ridges (Soft Emerald/Slate Contours)
-      if (typeof hills !== 'undefined' && hills.length > 0) {
-        for (const h of hills) {
-          const hx = toRx(h.x);
-          const hy = toRy(h.y);
-          const rx = ((h.sx || h.rx || 1.2) / ARENA_SIZE_M) * radarCanvas.width;
-          const ry = ((h.sy || h.ry || 1.0) / ARENA_SIZE_M) * radarCanvas.height;
-          const rot = (typeof h.rot === 'number') ? h.rot : (h.angle || 0);
-          const hVal = (typeof h.h === 'number') ? h.h : (h.height || 0.2);
-          rCtx.save();
-          rCtx.translate(hx, hy);
-          rCtx.rotate(-rot);
-          rCtx.strokeStyle = hVal > 0 ? 'rgba(148, 163, 184, 0.28)' : 'rgba(56, 189, 248, 0.22)';
-          rCtx.fillStyle = hVal > 0 ? 'rgba(148, 163, 184, 0.09)' : 'rgba(14, 116, 144, 0.09)';
-          rCtx.lineWidth = 1;
-          rCtx.beginPath();
-          rCtx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-          rCtx.fill();
-          rCtx.stroke();
-          rCtx.restore();
+      // Prescribed Red Loop Path from Photo (WhatsApp Image 1.47.11 PM.jpeg)
+      if (typeof NAKSHATRA_PRESCRIBED_PATH !== 'undefined' && NAKSHATRA_PRESCRIBED_PATH.length > 1) {
+        rCtx.strokeStyle = 'rgba(239, 68, 68, 0.88)';
+        rCtx.lineWidth = 2.0;
+        rCtx.beginPath();
+        rCtx.moveTo(toRx(NAKSHATRA_PRESCRIBED_PATH[0].x), toRy(NAKSHATRA_PRESCRIBED_PATH[0].y));
+        for (let i = 1; i < NAKSHATRA_PRESCRIBED_PATH.length; i++) {
+          rCtx.lineTo(toRx(NAKSHATRA_PRESCRIBED_PATH[i].x), toRy(NAKSHATRA_PRESCRIBED_PATH[i].y));
         }
+        rCtx.stroke();
       }
 
       // Craters (Cyan Rings)
       for (const c of craters) {
         const cx = toRx(c.x);
         const cy = toRy(c.y);
-        const cr = (c.r / ARENA_SIZE_M) * radarCanvas.width;
+        const cr = (c.r / ARENA_WIDTH_M) * radarCanvas.width;
         rCtx.fillStyle = 'rgba(2, 132, 199, 0.3)';
         rCtx.beginPath();
         rCtx.arc(cx, cy, cr, 0, Math.PI * 2);
         rCtx.fill();
         rCtx.strokeStyle = '#38bdf8';
-        rCtx.lineWidth = 1;
+        rCtx.lineWidth = 1.2;
         rCtx.stroke();
       }
 
@@ -4731,7 +4925,7 @@
       for (const b of boulders) {
         const bx = toRx(b.x);
         const by = toRy(b.y);
-        const br = Math.max(2, (b.r / ARENA_SIZE_M) * radarCanvas.width);
+        const br = Math.max(2, (b.r / ARENA_WIDTH_M) * radarCanvas.width);
         rCtx.fillStyle = '#f59e0b';
         rCtx.beginPath();
         rCtx.arc(bx, by, br, 0, Math.PI * 2);
@@ -5070,9 +5264,10 @@
       const vxWorld = rover.vLinear * Math.cos(rover.yaw);
       const vyWorld = rover.vLinear * Math.sin(rover.yaw);
 
-      const boundLimit = ARENA_SIZE_M / 2.0 - 0.18;
-      rover.x = Math.max(-boundLimit, Math.min(boundLimit, rover.x + vxWorld * dt));
-      rover.y = Math.max(-boundLimit, Math.min(boundLimit, rover.y + vyWorld * dt));
+      const boundLimitX = ARENA_HALF_X - 0.08;
+      const boundLimitY = ARENA_HALF_Y - 0.08;
+      rover.x = Math.max(-boundLimitX, Math.min(boundLimitX, rover.x + vxWorld * dt));
+      rover.y = Math.max(-boundLimitY, Math.min(boundLimitY, rover.y + vyWorld * dt));
       rover.vx = vxWorld;
       rover.vy = vyWorld;
 
@@ -5281,8 +5476,8 @@
 
       // Check ACTUAL Physical Boulder Collision
       for (const b of boulders) {
-        if (Math.hypot(rover.x - b.x, rover.y - b.y) < b.r + rover.width / 2) {
-          handleRoverFailure("COLLISION WITH BOULDER", b.x, b.y, "boulder", b.r + 0.12);
+        if (Math.hypot(rover.x - b.x, rover.y - b.y) < b.r + 0.045) {
+          handleRoverFailure("COLLISION WITH BOULDER", b.x, b.y, "boulder", b.r + 0.08);
           return;
         }
       }
@@ -5346,9 +5541,27 @@
         return;
       }
 
-      // Check Goal Arrival (Win Condition)
+      // Check Prescribed Red Path Waypoint Progression & Final "END" Ramp Arrival
       const distToGoal = Math.hypot(goal.x - rover.x, goal.y - rover.y);
-      if (distToGoal < 0.38 && !winTransitionCooldown) {
+      if (distToGoal < 0.16 && currentWaypointIndex < NAKSHATRA_PRESCRIBED_PATH.length - 1) {
+        currentWaypointIndex++;
+        goal.x = NAKSHATRA_PRESCRIBED_PATH[currentWaypointIndex].x;
+        goal.y = NAKSHATRA_PRESCRIBED_PATH[currentWaypointIndex].y;
+        updateGoalMarkerPosition();
+        stuckWatchdog.minDistToGoal = Math.hypot(goal.x - rover.x, goal.y - rover.y);
+        stuckWatchdog.lastProgressTime = currentTime;
+        stuckWatchdog.anchorX = rover.x;
+        stuckWatchdog.anchorY = rover.y;
+        stuckWatchdog.anchorTime = currentTime;
+        const wpLabel = NAKSHATRA_PRESCRIBED_PATH[currentWaypointIndex].label || `WP ${currentWaypointIndex}`;
+        const bannerEl = document.getElementById('status-banner');
+        if (bannerEl) {
+          bannerEl.textContent = `5×7 TILE NAKSHATRA RED PATH: WP ${currentWaypointIndex}/${NAKSHATRA_PRESCRIBED_PATH.length - 1} (${wpLabel})`;
+        }
+        return;
+      }
+
+      if (distToGoal < 0.16 && currentWaypointIndex >= NAKSHATRA_PRESCRIBED_PATH.length - 1 && !winTransitionCooldown) {
         rover.success = true;
         winTransitionCooldown = true;
 
@@ -5359,8 +5572,8 @@
         updateMarathonUI();
 
         if (continuousAutoLoop && totalWins < TARGET_WINS) {
-          showBanner(`🏆 WIN #${totalWins}/${TARGET_WINS} ON PLAY #${playNumber}! Policy Gen #${policyEvolution.generation} (Skill: ${policyEvolution.skillScore.toFixed(0)}%) → Spawning New Map & Relocating Goal...`, "bg-emerald-950 text-emerald-300 border-emerald-400 ring-2 ring-emerald-400");
-          triggerLLMMissionUpdate(`WIN #${totalWins}/${TARGET_WINS} ACHIEVED on Play #${playNumber} (Attempt #${attemptNumber})! Policy evolved to Gen #${policyEvolution.generation} (Streak: ${policyEvolution.winStreak}). Spawning new procedural 20m map and placing final target in a new sector.`);
+          showBanner(`🏆 NAKSHATRA RED LOOP COMPLETED (#${totalWins}/${TARGET_WINS}) AT "END" RAMP! Restarting Prescribed Loop from "START"...`, "bg-emerald-950 text-emerald-300 border-emerald-400 ring-2 ring-emerald-400");
+          triggerLLMMissionUpdate(`WIN #${totalWins}/${TARGET_WINS} ACHIEVED on 5×7 Tile Nakshatra Arena! Rover completed all ${NAKSHATRA_PRESCRIBED_PATH.length} waypoints from START (right of NAKSHATRA ramp) to END (left of NAKSHATRA ramp).`);
 
           setTimeout(() => {
             playNumber++;
@@ -5374,13 +5587,10 @@
             attemptProgressWaypoints = [];
             updateCorridorUI();
 
-            generateArenaData(true); // Generates brand new map AND places final goal point in a brand-new place!
-            build3DTerrain();
-            build3DBoulders();
-            build3DGoalMarker();
+            generateArenaData(false);
+            resetRoverState();
             build3DTrajectory();
             build3DFailureMarkers();
-            resetRoverState();
             rover.alive = true;
             rover.success = false;
             winTransitionCooldown = false;
@@ -5397,12 +5607,12 @@
               attLbl.className = "text-emerald-400 font-bold";
             }
 
-            showBanner(`🚀 PLAY #${playNumber} ACTIVE (Marathon Win ${totalWins}/${TARGET_WINS}) • Final Target: (${goal.x.toFixed(1)}, ${goal.y.toFixed(1)}) • Gen #${policyEvolution.generation}`, "bg-cyan-950 text-cyan-300 border-cyan-500");
+            showBanner(`🚀 PLAY #${playNumber} ACTIVE (Win ${totalWins}/${TARGET_WINS}) • Following Prescribed Red Loop Path from "START"`, "bg-cyan-950 text-cyan-300 border-cyan-500");
           }, 1100);
         } else {
           winTransitionCooldown = false;
           showBanner(`🏆🎉 2000-WIN MARATHON TARGET REACHED (${totalWins}/${TARGET_WINS})! Policy Gen #${policyEvolution.generation} Mastered!`, "bg-emerald-950 text-emerald-300 border-emerald-400 ring-2 ring-emerald-400");
-          triggerLLMMissionUpdate(`MARATHON GOAL COMPLETED! ${totalWins}/${TARGET_WINS} wins achieved across diverse 20m procedural maps.`);
+          triggerLLMMissionUpdate(`MARATHON GOAL COMPLETED! ${totalWins}/${TARGET_WINS} wins achieved across the 5×7 tile Nakshatra arena.`);
         }
       }
     }
@@ -5684,7 +5894,7 @@
         camera.position.copy(mastWorldPos);
         camera.lookAt(mastTargetPos);
       } else if (activeCameraMode === 'topdown') {
-        camera.position.lerp(new THREE.Vector3(0, 12.0, 0.001), 0.08);
+        camera.position.lerp(new THREE.Vector3(0, 4.25, 0.001), 0.08);
         camera.lookAt(0, 0, 0);
       }
     }
@@ -5879,8 +6089,8 @@
       activeCameraMode = e.target.value;
       if (activeCameraMode === 'orbit') {
         controls.enabled = true;
-        camera.position.set(0.0, 9.2, 13.8);
-        controls.target.set(0, 0, -0.5);
+        camera.position.set(0.0, 3.60, 3.92);
+        controls.target.set(0, 0, 0.14);
       } else {
         controls.enabled = false;
       }
