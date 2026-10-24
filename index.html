@@ -148,19 +148,19 @@
       <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-600 font-bold text-[10px]">⚡ ESP32-S3 HARDWARE LINK</span>
       <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-slate-800">
         <span class="text-slate-400 text-[10px]">ESP1 (OV7670+BTS7960+FS-iA9B):</span>
-        <input id="inp-esp1-ip" type="text" value="192.168.4.1" class="bg-slate-900 text-cyan-300 border border-slate-700 rounded px-1.5 py-0.5 w-28 text-[10px] focus:outline-none focus:border-cyan-400" />
+        <input id="inp-esp1-ip" type="text" value="127.0.0.1:8081" class="bg-slate-900 text-cyan-300 border border-slate-700 rounded px-1.5 py-0.5 w-28 text-[10px] focus:outline-none focus:border-cyan-400" title="127.0.0.1:8081 (COM7 USB Bridge) or 192.168.4.1 (Wi-Fi SoftAP)" />
       </div>
       <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-slate-800">
         <span class="text-slate-400 text-[10px]">ESP2 (S3-CAM):</span>
         <input id="inp-esp2-ip" type="text" value="192.168.1.102" class="bg-slate-900 text-cyan-300 border border-slate-700 rounded px-1.5 py-0.5 w-28 text-[10px] focus:outline-none focus:border-cyan-400" />
       </div>
-      <button id="btn-hw-sync" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-400 flex items-center gap-1 shadow">
+      <button id="btn-hw-sync" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-emerald-500 text-slate-950 border border-emerald-300 ring-2 ring-emerald-400 flex items-center gap-1 shadow">
         <span>🔗</span>
-        <span id="lbl-hw-sync">Sync Real Rover: OFF</span>
+        <span id="lbl-hw-sync">Sync Real Rover: LIVE (COM7)</span>
       </button>
-      <button id="btn-cam-source" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-600/60 flex items-center gap-1 shadow">
+      <button id="btn-cam-source" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-cyan-500 text-slate-950 border border-cyan-300 ring-2 ring-cyan-400 flex items-center gap-1 shadow">
         <span>📷</span>
-        <span id="lbl-cam-source">Feed: 3D Stereo Sim</span>
+        <span id="lbl-cam-source">Feed: Live OV7670 (COM7)</span>
       </button>
       <button id="btn-flysky-mode" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-slate-800 hover:bg-amber-600 text-amber-300 hover:text-slate-950 border border-amber-500/70 flex items-center gap-1 shadow" title="Toggle FlySky FS-iA9B Manual Override (GPIO 14 i-BUS CH1/CH2/CH5)">
         <span>📻</span>
@@ -253,9 +253,9 @@
           <div class="relative w-[302px] h-[96px] rounded border border-slate-800 bg-[#030611] overflow-hidden">
             <canvas id="pipCanvas" width="302" height="96" class="block"></canvas>
             <!-- Live Hardware Camera Stream Overlay (Visible when Feed = Live ESP32 Cameras) -->
-            <div id="hw-cam-streams" class="hidden absolute inset-0 grid grid-cols-2 bg-slate-950">
-              <img id="hw-cam-left-img" alt="ESP32-S3 #1 OV7670 Live" class="w-[149px] h-[96px] object-cover border-r border-cyan-500/40" />
-              <img id="hw-cam-right-img" alt="ESP32-S3-CAM #2 Live" class="w-[149px] h-[96px] object-cover" />
+            <div id="hw-cam-streams" class="absolute inset-0 grid grid-cols-2 pointer-events-none">
+              <img id="hw-cam-left-img" alt="ESP32-S3 #1 OV7670 Live" class="hidden w-[149px] h-[96px] object-cover border-r border-cyan-500/40" onload="this.classList.remove('hidden')" onerror="this.classList.add('hidden')" />
+              <img id="hw-cam-right-img" alt="ESP32-S3-CAM #2 Live" class="hidden w-[149px] h-[96px] object-cover" onload="this.classList.remove('hidden')" onerror="this.classList.add('hidden')" />
             </div>
             <canvas id="pipOverlayCanvas" width="302" height="96" class="absolute inset-0 pointer-events-none block"></canvas>
             <!-- Camera Viewport Labels -->
@@ -6507,8 +6507,8 @@
     // PHYSICAL ESP32-S3 HARDWARE BRIDGE: OV7670 + S3-CAM + 2x BTS7960B + FLYSKY FS-iA9B
     // =========================================================================
     const hwBridgeState = {
-      syncEnabled: false,
-      liveCameraFeed: false,
+      syncEnabled: true,
+      liveCameraFeed: true,
       flyskyOverrideActive: false,
       ibusSignalActive: false,
       rcCh1Steer: 1500,
